@@ -1,0 +1,7 @@
+bower_components/*
+connectors/*
+coverage/*
+log/*
+userfiles/*
+vendor/*
+composer.lock
