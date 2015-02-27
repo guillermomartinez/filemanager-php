@@ -1,7 +1,10 @@
 bower_components/*
+node_modules/*
 connectors/*
 coverage/*
 log/*
 userfiles/*
+tests/userfiles/*
+tests/_output/*
 vendor/*
 composer.lock

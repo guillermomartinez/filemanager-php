@@ -52,17 +52,17 @@ class FilemenagerTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($r['filename'],'demo');
 		$this->assertEquals($r['filetype'],'');
 
-		// Cuando es un archivo
-		$filesystem->dumpFile("tests/userfiles/test.txt",'Hola Mundo');
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/test.txt';
-		$fullpath = $f->getFullPath().$path;
-		$file = new \SplFileInfo($fullpath);
-		$r = $f->fileInfo($file,$path);
-		$this->assertEquals($r['path'],'/tests/userfiles/');
-		$this->assertEquals($r['filename'],'test.txt');
-		$this->assertEquals($r['filetype'],'txt');
+		// // Cuando es un archivo
+		// $filesystem->dumpFile("tests/userfiles/test.txt",'Hola Mundo');
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/test.txt';
+		// $fullpath = $f->getFullPath().$path;
+		// $file = new \SplFileInfo($fullpath);
+		// $r = $f->fileInfo($file,$path);
+		// $this->assertEquals($r['path'],'/tests/userfiles/');
+		// $this->assertEquals($r['filename'],'test.txt');
+		// $this->assertEquals($r['filetype'],'txt');
 
 		// // Cuando es un archivo no leible
 		// $filesystem->dumpFile("tests/userfiles/file.txt",'Hola Mundo');
@@ -81,59 +81,59 @@ class FilemenagerTest extends PHPUnit_Framework_TestCase
 		$filesystem = new Filesystem();
 		$filesystem->remove('tests/userfiles');
 
-		// Carpeta vacia
-		$filesystem->mkdir("tests/userfiles");
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/';
-		$r = $f->getAllFiles($path);
-		$this->assertEquals($r,array());
+		// // Carpeta vacia
+		// $filesystem->mkdir("tests/userfiles");
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/';
+		// $r = $f->getAllFiles($path);
+		// $this->assertEquals($r,array());
 
-		// Un archivo
-		$filesystem->dumpFile("tests/userfiles/test.txt",'Hola Mundo');
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/';
-		$r = $f->getAllFiles($path);
-		$this->assertEquals($r[0]['path'],'/tests/userfiles/');
-		$this->assertEquals($r[0]['filename'],'test.txt');
-		$this->assertEquals($r[0]['filetype'],'txt');
+		// // Un archivo
+		// $filesystem->dumpFile("tests/userfiles/test.txt",'Hola Mundo');
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/';
+		// $r = $f->getAllFiles($path);
+		// $this->assertEquals($r[0]['path'],'/tests/userfiles/');
+		// $this->assertEquals($r[0]['filename'],'test.txt');
+		// $this->assertEquals($r[0]['filetype'],'txt');
 
-		// Una carpeta y un archivo archivo
-		$filesystem->mkdir("tests/userfiles/demo");		
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/';
-		$r = $f->getAllFiles($path);
-		$this->assertEquals($r[0]['path'],'/tests/userfiles/');
-		$this->assertEquals($r[0]['filename'],'demo');
-		$this->assertEquals($r[0]['filetype'],'');
-		$this->assertEquals($r[1]['path'],'/tests/userfiles/');
-		$this->assertEquals($r[1]['filename'],'test.txt');
-		$this->assertEquals($r[1]['filetype'],'txt');
+		// // Una carpeta y un archivo archivo
+		// $filesystem->mkdir("tests/userfiles/demo");		
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/';
+		// $r = $f->getAllFiles($path);
+		// $this->assertEquals($r[0]['path'],'/tests/userfiles/');
+		// $this->assertEquals($r[0]['filename'],'demo');
+		// $this->assertEquals($r[0]['filetype'],'');
+		// $this->assertEquals($r[1]['path'],'/tests/userfiles/');
+		// $this->assertEquals($r[1]['filename'],'test.txt');
+		// $this->assertEquals($r[1]['filetype'],'txt');
 
-		// No existe carpeta		
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/test';
-		$r = $f->getAllFiles($path);
-		$this->assertEquals($r,NULL);
+		// // No existe carpeta		
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/test';
+		// $r = $f->getAllFiles($path);
+		// $this->assertEquals($r,NULL);
 
-		// Path un archivo					
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/test.txt';
-		$r = $f->getAllFiles($path);
-		$this->assertEquals($r['path'],'/tests/userfiles/');
-		$this->assertEquals($r['filename'],'test.txt');
-		$this->assertEquals($r['filetype'],'txt');
+		// // Path un archivo					
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/test.txt';
+		// $r = $f->getAllFiles($path);
+		// $this->assertEquals($r['path'],'/tests/userfiles/');
+		// $this->assertEquals($r['filename'],'test.txt');
+		// $this->assertEquals($r['filetype'],'txt');
 
-		// Todos
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/';
-		$r = $f->getAllFiles($path);
-		$this->assertTrue(count($r)>0);
+		// // Todos
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $path = '/';
+		// $r = $f->getAllFiles($path);
+		// $this->assertTrue(count($r)>0);
 
 	}
 	public function testUploadAll(){
@@ -149,29 +149,39 @@ class FilemenagerTest extends PHPUnit_Framework_TestCase
 		// var_dump($files[0]);		
 
 	}
-	public function testUpload(){
-		$extra = array("separator" => "tests/userfiles");
-		$f = new Filemanager($extra);
-		$path = '/';
-		$p = __DIR__ .'/_data/Koala.jpg';
-		$file = new UploadedFile($p,'Koala.jpg','image/jpg',filesize($p));
-		$r = $f->upload($file,$path);
-		var_dump($r);
-	}
+	// public function testUpload(){
+	// 	$extra = array("separator" => "tests/userfiles");
+	// 	$f = new Filemanager($extra);
+	// 	$path = '/';
+	// 	$p = __DIR__ .'/_data/Koala.jpg';
+	// 	$file = new UploadedFile($p,'Koala.jpg','image/jpg',filesize($p));
+	// 	$r = $f->upload($file,$path);
+	// 	var_dump($r);
+	// }
 	public function testRun(){
-		$filesystem = new Filesystem();
-		$filesystem->remove('tests/userfiles');
+		// $filesystem = new Filesystem();
+		// $filesystem->remove('tests/userfiles');
 
-		// Mostrar cuando esta vacio
-		$filesystem->mkdir("tests/userfiles");
-		$_POST['mode']='getfolder';
-		$_POST['path']='/';
+		// // Mostrar cuando esta vacio
+		// $filesystem->mkdir("tests/userfiles");
+		// $_POST['mode']='getfolder';
+		// $_POST['path']='/';
+		// $extra = array("separator" => "tests/userfiles");
+		// $f = new Filemanager($extra);
+		// $f->run();
+		// $response = new JsonResponse(array("data"=>array(),"msg"=>""));
+  //       $this->assertEquals($f->run(), $response->sendContent());
+
+	}
+	public function testClearNameFile(){
 		$extra = array("separator" => "tests/userfiles");
 		$f = new Filemanager($extra);
-		$f->run();
-		$response = new JsonResponse(array("data"=>array(),"msg"=>""));
-        $this->assertEquals($f->run(), $response->sendContent());
-
+		$filename = 'Ñoño NúMEro';
+		$r = $f->clearNameFile($filename);
+		$this->assertEquals($r,"nono-numero");
+		$filename = 'Ñoño  NúMEro';
+		$r = $f->clearNameFile($filename);
+		$this->assertEquals($r,"nono-numero");
 	}
 }
 ?>
