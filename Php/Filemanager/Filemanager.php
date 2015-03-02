@@ -156,7 +156,7 @@ class Filemanager
 				if($filethumb->exists($fullpaththumb) == false){
 					$filethumb->mkdir($fullpaththumb);
 				}
-				$manager = new ImageManager(array('driver' => 'imagick'));
+				$manager = new ImageManager();
 				$image = $manager->make($fullpath.$file->getFilename())->fit($this->config['images']['resize']['thumbWidth'],$this->config['images']['resize']['thumbHeight'],function ($constraint) {$constraint->upsize();});
 				$image->save($fullpaththumb_name);
 			}
@@ -277,6 +277,11 @@ class Filemanager
 	public function removeExtension($filename)
 	{
 		return substr($filename,0,strrpos( $filename, '.' ) ) ;
+	}
+	public function getExtension($nameFile){
+		$extension = substr( $nameFile, ( strrpos($nameFile, '.') + 1 ) ) ;
+		$extension = strtolower( $extension ) ;
+		return $extension;
 	}
 	public function getMaxUploadFileSize() {
 			
@@ -434,14 +439,21 @@ class Filemanager
 		$fullpath = $this->getFullPath().$path;
 		$nameold = $this->clearNameFile($nameold);
 		$namenew = $this->clearNameFile($namenew);
+		// $this->log(__METHOD__.'$namenew '.$namenew);
+		// $this->log('$namenew - '.$fullpath.$namenew);
+		$namenew = $namenew.'.'.$this->getExtension($nameold);
 		$file = new Filesystem;
 		if($file->exists($fullpath.$nameold)){
-			$this->log('$fullpath.$namefile - '.$fullpath.$nameold);
+			$this->log('$fullpath.$nameold - '.$fullpath.$nameold);
+			$this->log('$fullpath.$namenew - '.$fullpath.$namenew);
 			if(is_dir($fullpath.$nameold)){
 				if($file->exists($fullpath.$namenew)==false){
 					$file->rename($fullpath.$nameold,$fullpath.$namenew);
 					$this->error('Archivo Modificaded');
+				}else{
+					$this->error('Ya existe');
 				}
+
 			}elseif(is_file($fullpath.$nameold)){
 				if($file->exists($fullpath.$namenew)==false){
 					$file2 = new \SplFileInfo($fullpath.$nameold);				
@@ -456,11 +468,13 @@ class Filemanager
 					$file3 = new \SplFileInfo($fullpath.$namenew);				
 					$this->createThumb($file3,$path);				
 					$this->error('Archivo Modificaded');
+				}else{
+					$this->error('Ya existe');
 				}
 				
 			}
 		}else{
-			$this->error('Archivo no existe: '.$namefile);
+			$this->error('Archivo no existe: '.$nameold);
 			$this->info['status'] = false;
 		}
 
@@ -511,7 +525,7 @@ class Filemanager
 
 				}elseif($this->accion==='renamefile'){
 					$nameold = $this->sanitize($request->request->get('nameold'));
-					$namenew = $this->sanitize($request->request->get('name'));
+					$namenew = $this->sanitize($request->request->get('name'));					
 					$this->rename($nameold,$namenew,$path);
 				}elseif($this->accion==='deletefile'){
 					$name = $this->sanitize($request->request->get('name'));

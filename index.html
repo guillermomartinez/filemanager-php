@@ -505,7 +505,7 @@ document.querySelector("#actions .cancel").onclick = function() {
 				 	var button = $(e.relatedTarget);
 				 	var name = button.data('name');
 				 	var modal = $(this);
-				 	modal.find('.modal-body .content input[name="name"]').val(name);
+				 	modal.find('.modal-body .content input[name="name"]').val(name.substr(0,name.lastIndexOf( "." )));
 				 	modal.find('.modal-body .content input[name="nameold"]').val(name);
 				 	modal.find('.modal-body .result').html('');
 				});
