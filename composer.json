@@ -1,4 +1,13 @@
 {
+    "name": "Guillermomartinez/filemanager",
+    "description": "Filemanager",
+    "license": "MIT",
+    "authors": [
+        {
+        "name": "Guillermo M.",
+        "email": "guille_55_88@hotmail.com"
+        }
+    ],
     "require": {        
         "symfony/finder": "~2.6",
         "symfony/http-foundation": "~2.6",
@@ -13,7 +22,7 @@
     },
     "autoload": {        
         "psr-4": {
-            "Pqb\\":"Pqb"
+            "GuillermoMartinez\\":"src/GuillermoMartinez"
         }
     }
 }

@@ -1,9 +1,8 @@
 bower_components/*
 node_modules/*
-connectors/*
 coverage/*
-log/*
-userfiles/*
+src/log/*
+public/userfiles/*
 tests/userfiles/*
 tests/_output/*
 vendor/*
