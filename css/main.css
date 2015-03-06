@@ -25,6 +25,10 @@ text-align: center;
 .filemanager .list .item .image span {
     font-size: 80px;
 }
+#preview_file span{
+ font-size: 80px; 
+ color: #337ab7;
+}
 .filemanager .list .item p {
     font-size: 13px;
     line-height: 14px;

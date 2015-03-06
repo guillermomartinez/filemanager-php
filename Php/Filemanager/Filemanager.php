@@ -17,7 +17,7 @@ class Filemanager
 	public $accion = '';
 	public $path = '';
 	public $log = null;
-	public $info = array("data"=>array(),"status"=>true,"msg"=>"");
+	private $info = array("data"=>array(),"status"=>true,"msg"=>array("query"=>"","params"=>array()));
 	private $fileDetails = array(
 				"path" => '',
 				"filename" => "",
@@ -26,14 +26,7 @@ class Filemanager
 				"filectime" => "",
 				"readable" => 0,
 				"writable" => 0,
-				"preview" => "",
-				"properties" => array(
-					"Size"=>"",
-					"Height"=>"",
-					"Width"=>"",
-					"Date Modified"=>"",
-					"filemtime"=>"",
-					),
+				"preview" => "",				
 				"size" => "",
 				"msg" => "",
 				);
@@ -44,18 +37,15 @@ class Filemanager
 			"separator" => "userfiles",
 			"debug" => true,
 			"debugfile" => "log/filemanager.log",
-			"security" => array(		        
-		        "ext" => array("jpg","jpeg","gif","png","svg","txt","pdf","odp","ods","odt","rtf","doc","docx","xls","xlsx","ppt","pptx","csv","ogv","mp4","webm","m4v","ogg","mp3","wav","zip","rar"),
-		    ),
+			"ext" => array("jpg","jpeg","gif","png","svg","txt","pdf","odp","ods","odt","rtf","doc","docx","xls","xlsx","ppt","pptx","csv","ogv","mp4","webm","m4v","ogg","mp3","wav","zip","rar"),
 		    "upload" => array(
-		        "multiple" => true,
 		        "number" => 5,
 		        "overwrite" => false,
 		        "size_max" => 10
 		    ),
 		  	"images" => array(
-		        "images_ext" => array("jpg","jpeg","gif","png","svg"),
-		        "resize" => array("enabled" => true,"maxWidth" => 1280,"maxHeight" => 1024,"thumbWidth" => 80,"thumbHeight" => 80)
+		        "images_ext" => array("jpg","jpeg","gif","png"),
+		        "resize" => array("thumbWidth" => 80,"thumbHeight" => 80)
 		    ),
 		);
 		// if($this->config["doc_root"]=="") $this->config["doc_root"] = $_SERVER['DOCUMENT_ROOT'];
@@ -104,6 +94,37 @@ class Filemanager
 	}
 
 	/**
+	 * Valida nombre de archivo
+	 * @param string $filename 
+	 * @return boolean
+	 */
+	public function validNameFile($filename){
+		$filename = trim($filename);
+		if($filename!="." && $filename!=".." && $filename!=" " && preg_match_all("#^[a-zA-Z0-9-_.\s]+$#",$filename) > 0){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * Valida extension de archivos
+	 * @param string $filename 
+	 * @return boolean
+	 */
+	public function validExt($filename){
+		$exts = $this->config['ext'];
+		$ext = $this->getExtension($filename);
+		if(array_search($ext,$exts)===false){
+			return false;
+		}else{
+			return true;
+		}
+
+
+	}
+
+	/**
 	* Todas las propiedades de un archivo o directorio
 	* 
 	* @param SplFileInfo $file Object of SplFileInfo
@@ -142,17 +163,25 @@ class Filemanager
 			return ;
 		}			
 	}
+
+	/**
+	 * Crea la miniatura de imagenes
+	 * @param UploadedFile $file 
+	 * @param string $path 
+	 * @return string Nombre del nuevo archivo
+	 */
 	public function createThumb($file,$path){
-		if($file->getExtension() == 'jpg' || $file->getExtension() == 'jpeg' || $file->getExtension() == 'png' || $file->getExtension() == 'gif'){
+		$ext = $file->getExtension();
+		if(array_search($ext, $this->config["images"]["images_ext"])){
 			$fullpath = $this->getFullPath().$path;
 			$fullpaththumb = $this->getFullPath().'/_thumbs'.$path;
 			$filename = $file->getFilename();
 			$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file->getExtension();
 			$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
-			if( $this->config['debug'] ) $this->log(__METHOD__." - $fullpaththumb");
+			if( $this->config['debug'] ) $this->_log(__METHOD__." - $fullpaththumb");
 			$filethumb = new Filesystem;
 			if($filethumb->exists($fullpaththumb_name) == false){			
-				if( $this->config['debug'] ) $this->log(__METHOD__." - ".$fullpaththumb_name);
+				if( $this->config['debug'] ) $this->_log(__METHOD__." - ".$fullpaththumb_name);
 				if($filethumb->exists($fullpaththumb) == false){
 					$filethumb->mkdir($fullpaththumb);
 				}
@@ -165,6 +194,11 @@ class Filemanager
 		
 	}
 
+	/**
+	 * Crear la carpeta para subir de nivel
+	 * @param string $path 
+	 * @return array
+	 */
 	public function folderParent($path){	
 		if($path != '/' && $path !="" ){			
 			$params = explode("/",$path);
@@ -220,18 +254,24 @@ class Filemanager
 				if($t){
 					return $t;
 				}else{
-					$this->error("Archivo no leible");
-					$this->log(__METHOD__." - Archivo no leible - $fullpath");
+					// $this->setInfo(array("msg"=>"Archivo no leible"));
+					$result = array("query"=>"BE_GETFILEALL_NOT_LEIBLE","params"=>array());
+					$this->setInfo(array("msg"=>$result));
+					if( $this->config['debug'] ) $this->_log(__METHOD__." - Archivo no leible - $fullpath");
 					return;
 				} 
 			}elseif($file->isLink()){
-				$this->error("Archivo no permitido");
-				$this->log(__METHOD__." - path desconocido - $fullpath");
+				// $this->setInfo(array("msg"=>"Archivo no permitido"));
+				$result = array("query"=>"BE_GETFILEALL_NOT_PERMITIDO","params"=>array());
+				$this->setInfo(array("msg"=>$result));
+				if( $this->config['debug'] ) $this->_log(__METHOD__." - path desconocido - $fullpath");
 				return ;
 			}
 		}else{
-			$this->error("No existe el archivo");
-			$this->log(__METHOD__." - No existe el archivo - $fullpath");
+			// $this->setInfo(array("msg"=>"No existe el archivo"));
+			$result = array("query"=>"BE_GETFILEALL_NOT_EXISTED","params"=>array());
+			$this->setInfo(array("msg"=>$result));
+			if( $this->config['debug'] ) $this->_log(__METHOD__." - No existe el archivo - $fullpath");
 			return ;
 		}
 
@@ -240,20 +280,23 @@ class Filemanager
 
 	/**
 	 * Agrega mensaje a cada peticion si se produce un error
-	 * @param string $string 
+	 * @param array $data 
 	 * @return void
 	 */
-	public function error($string) {
-		$this->info['msg'] = $string;		
+	public function setInfo($data=array()) {
+		if(isset($data['data'])) $this->info['data'] = $data['data'];
+		if(isset($data['status'])) $this->info['status'] = $data['status'];
+		if(isset($data['msg'])) $this->info['msg'] = $data['msg'];
+		
 	}
 
-	/**
+	/**status
 	 * Si debug active permite logear informacion
 	 * @param string $string Texto a mostrar
 	 * @return void
 	 */
-	public function log($string) {
-		if($this->config['debug'])	$this->log->addError($string);
+	public function _log($string) {
+		$this->log->addError($string);
 	}
 
 	/**
@@ -278,56 +321,88 @@ class Filemanager
 	{
 		return substr($filename,0,strrpos( $filename, '.' ) ) ;
 	}
+
+	/**
+	 * Obtiene la extensión de un nombre de archivo
+	 * @param string $nameFile 
+	 * @return string
+	 */
 	public function getExtension($nameFile){
 		$extension = substr( $nameFile, ( strrpos($nameFile, '.') + 1 ) ) ;
 		$extension = strtolower( $extension ) ;
 		return $extension;
 	}
+
+	/**
+	 * Obtiene el tamaño maximo permitido por el servidor
+	 * @return int
+	 */
 	public function getMaxUploadFileSize() {
 			
 		$upload_max_filesize =  ini_get('upload_max_filesize');
 		$post_max_size =  ini_get('post_max_size');
 		$size_max = min($upload_max_filesize, $post_max_size);
 		// var_dump($upload_max_filesize, $post_max_size);
-		// $this->log(__METHOD__.": $size_max MB");
+		// $this->_log(__METHOD__.": $size_max MB");
 
 		return $size_max;
 	}
+
+	/**
+	 * Mueve un arcivo subido
+	 * @param UploadedFile $file 
+	 * @param string $path 
+	 * @return SplFileInfo|null
+	 */
 	public function upload($file,$path){
-		if($file->getClientSize() > ($this->getMaxUploadFileSize() * 1024 * 1024) ){
-			$this->error("file size no permitido server: ".$file->getClientSize());
-			$this->log(__METHOD__." - file size no permitido server: ".$file->getClientSize());
-			return ;
-		}elseif($file->getClientSize() > ($this->config['upload']['size_max'] * 1024 * 1024) ){
-			$this->error("file size no permitido: ".$file->getClientSize());
-			$this->log(__METHOD__." - file size no permitido: ".$file->getClientSize());
-			return ;
-		}else{
-			if($file->isValid()){
-				$dir = $this->getFullPath().$path;
-				$namefile = $file->getClientOriginalName();
-				$namefile = $this->clearNameFile($namefile);
-				$nametemp = $namefile;
-				$ext = $file->getClientOriginalExtension();
-				$i=0;
-				while(true){
-					$pathnametemp = $dir.$nametemp;
-					if(file_exists($pathnametemp)){
-						$i++;
-						$nametemp = $this->removeExtension( $namefile ) . '_' . $i . '.' . $ext ;
-					}else{
-						break;
-					}
-				}
-				$file->move($dir,$nametemp);
-				$file = new  \SplFileInfo($dir.$nametemp);
-				return $file;		
+		if( $this->validExt($file->getClientOriginalName())){
+			if($file->getClientSize() > ($this->getMaxUploadFileSize() * 1024 * 1024) ){
+				// $this->setInfo(array("msg"=>"file size no permitido server: ".$file->getClientSize()));
+				
+				$result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_SERVER","params"=>array($file->getClientSize()));
+				$this->setInfo(array("msg"=>$result));
+
+				if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido server: ".$file->getClientSize());
+				return ;
+			}elseif($file->getClientSize() > ($this->config['upload']['size_max'] * 1024 * 1024) ){
+				// $this->setInfo(array("msg"=>"file size no permitido: ".$file->getClientSize()));
+
+				$result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_PERMITIDO","params"=>array($file->getClientSize()));
+				$this->setInfo(array("msg"=>$result));
+
+				if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido: ".$file->getClientSize());
+				return ;
 			}else{
-				$this->error("file no permitido");
-				$this->info['status'] = false;
+				if($file->isValid()){
+					$dir = $this->getFullPath().$path;
+					$namefile = $file->getClientOriginalName();
+					$namefile = $this->clearNameFile($namefile);
+					$nametemp = $namefile;
+					if( $this->config["upload"]["overwrite"] ==false){
+						$ext = $file->getClientOriginalExtension();
+						$i=0;
+						while(true){
+							$pathnametemp = $dir.$nametemp;
+							if(file_exists($pathnametemp)){
+								$i++;
+								$nametemp = $this->removeExtension( $namefile ) . '_' . $i . '.' . $ext ;
+							}else{
+								break;
+							}
+						}
+					}
+					
+					$file->move($dir,$nametemp);
+					$file = new  \SplFileInfo($dir.$nametemp);
+					return $file;		
+				}
+				
 			}
-			
+		}else{
+			// $this->setInfo(array("msg"=>"file no permitido","status"=>false));
+			if( $this->config['debug'] ) $this->_log(__METHOD__." - file extension no permitido: ".$file->getExtension());
 		}
+		
 		
 	}
 
@@ -339,50 +414,60 @@ class Filemanager
 	 */
 	public function uploadAll($files,$path){
 		if( is_array($files) && count($files) > 0 ){
-			$n = count($files);;
-			$result = array();
-			$notresult = array();
-			foreach ($files as $key => $value) {
-				$file = $this->upload($value,$path);
-				if( $file ){					
-					$this->createThumb($file,$path);
-					$result[] = $file->getFilename();
-				}else{
-					$notresult[] = $value->getClientOriginalName();
+			$n = count($files);
+			if( $n <= $this->config['upload']['number'] ){
+				$res = array();
+				$notresult = array();
+				foreach ($files as $key => $value) {
+					$file = $this->upload($value,$path);
+					if( $file ){					
+						$this->createThumb($file,$path);
+						$res[] = $file->getFilename();
+					}else{
+						$notresult[] = $value->getClientOriginalName();
+					}
 				}
+				$r = '';
+				$n2 = count($res);			
+				// $r = 'Subido: %s / %s';
+				$result = array("query"=>"BE_UPLOADALL_UPLOADS %s / %s","params"=>array($n2,$n));
+				if(count($notresult)>0){
+					// $r .= ' | Not permitido: ';
+					// $r .= implode(',', $notresult);
+					$result['query'] = $result['query'].' | BE_UPLOADALL_NOT_UPLOADS '; 
+					$i=0;
+					$n = count($notresult);
+					foreach ($notresult as $value) {
+						$result['query'] = $result['query'] . ' %s';
+						if( $n - 1 > $i ){
+							$result['query'] = $result['query'] . ',';
+							$value = $value.',';
+						}
+						$result['params'][] = $value;
+						$i++;
+						
+					}
+				}
+				// $this->setInfo(array("msg"=>$r));
+				
+				$this->setInfo(array("msg"=>$result));
+				return $res;
+			}else{
+				// $this->setInfo(array("msg"=>"Max upload: ".$this->config['upload']['number'],"status"=>false));
+				$result = array("query"=>"BE_UPLOAD_MAX_UPLOAD %s MB","params"=>array($this->config['upload']['number']));
+				$this->setInfo(array("msg"=>$result,"status"=>false));
+				
 			}
-			$r = '';
-			$n2 = count($result);			
-			$r = 'Subido: '.$n2.'/'.$n.'';
-			if(count($notresult)>0){
-				$r .= ' | Not permitido: ';
-				$r .= implode(',', $notresult);
-			}
-			$this->info['msg'] = $r;
-			return $result;
-
-			
 		}else{
 			return ;
-		}
-		// $n = count($files);
-		// if( $n > 0 ){
-		// 	$r = array();
-		// 	$i = 0;
-		// 	foreach ($files as $key => $file) {
-		// 		$t = $this->upload($file,$path);
-		// 		if( $t ){
-		// 			$i++;
-		// 			$r[] = $t;
-		// 		}
-		// 	}
-		// 	$this->log(__METHOD__." - ".'$files'.": ".print_r($files,true));
-		// 	return $r;			
-		// }else{
-		// 	$this->log(__METHOD__." - ".'$files'.": ".print_r($files,true));
-		// 	return ;
-		// }		
+		}		
 	}
+
+	/**
+	 * Limpia el nombre de archivo
+	 * @param string $namefile 
+	 * @return string
+	 */
 	public function clearNameFile($namefile){
 		$namefile = strip_tags($namefile);
 		$namefile = trim($namefile);
@@ -394,32 +479,50 @@ class Filemanager
 		$namefile = strtolower($namefile);
 		return $namefile;
 	}
+
+	/**
+	 * Renombre una carpeta
+	 * @param string $namefile 
+	 * @param string $path 
+	 * @return boolean
+	 */
 	public function newFolder($namefile,$path){
 		$fullpath = $this->getFullPath().$path;
 		$namefile = $this->clearNameFile($namefile);
 		$dir = new Filesystem;
 		if($dir->exists($fullpath.$namefile)){
-			$this->error("Ya existe: ".$path.$namefile);
-			$this->log(__METHOD__." - Ya existe: ".$path.$namefile);
-			$this->info['status'] = false;
+			// $this->setInfo(array("msg"=>"Ya existe: ".$path.$namefile,"status"=>false));
+			$result = array("query"=>"BE_NEW_FOLDER_EXISTED %s","params"=>array($path.$namefile));
+			$this->setInfo(array("msg"=>$result,"status"=>false));
+
+			if( $this->config['debug'] ) $this->_log(__METHOD__." - Ya existe: ".$path.$namefile);
 			return false;
 		}else{
 			$dir->mkdir($fullpath.$namefile);
-			$this->info['msg'] = "Creado: ".$path.$namefile;
-			$this->info['data'] = array( "path" => $path, "namefile" => $namefile );
+			// $this->setInfo(array("msg"=>"Creado: ".$path.$namefile,"data"=>array( "path" => $path, "namefile" => $namefile )));
+			$result = array("query"=>"BE_NEW_FOLDER_CREATED %s","params"=>array($path.$namefile));
+			$this->setInfo(array("msg"=>$result,"data"=>array( "path" => $path, "namefile" => $namefile )));
 			return true;
 		}
 	}
 
+	/**
+	 * Borra un archivo
+	 * @param string $namefile 
+	 * @param string $path 
+	 * @return void
+	 */
 	public function delete($namefile,$path){		
 		$fullpath = $this->getFullPath().$path;
 		$namefile = $this->clearNameFile($namefile);
 		$file = new Filesystem;
 		if($file->exists($fullpath.$namefile)){
-			$this->log('$fullpath.$namefile - '.$fullpath.$namefile);
+			if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 			if(is_dir($fullpath.$namefile)){
 				$file->remove($fullpath.$namefile);
-				$this->error('Archivo deleted');
+				// $this->setInfo(array("msg"=>'Archivo deleted'));
+				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+				$this->setInfo(array("msg"=>$result));
 			}elseif(is_file($fullpath.$namefile)){
 				$file2 = new \SplFileInfo($fullpath.$namefile);				
 				$filename = $file2->getFilename();
@@ -427,56 +530,89 @@ class Filemanager
 				$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
 				$file->remove($fullpaththumb_name);
 				$file->remove($fullpath.$namefile);
-				$this->error('Archivo deleted');
+				// $this->setInfo(array("msg"=>'Archivo deleted'));
+				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+				$this->setInfo(array("msg"=>$result));
 			}
 		}else{
-			$this->error('Archivo no existe: '.$namefile);
-			$this->info['status'] = false;
+			// $this->setInfo(array("msg"=>'Archivo no existe: '.$namefile, "status"=> false));			
+			$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+			$this->setInfo(array("msg"=>$result, "status"=> false));
 		}
 
 	}
-	public function rename($nameold,$namenew,$path){		
-		$fullpath = $this->getFullPath().$path;
-		$nameold = $this->clearNameFile($nameold);
-		$namenew = $this->clearNameFile($namenew);
-		// $this->log(__METHOD__.'$namenew '.$namenew);
-		// $this->log('$namenew - '.$fullpath.$namenew);
-		$namenew = $namenew.'.'.$this->getExtension($nameold);
-		$file = new Filesystem;
-		if($file->exists($fullpath.$nameold)){
-			$this->log('$fullpath.$nameold - '.$fullpath.$nameold);
-			$this->log('$fullpath.$namenew - '.$fullpath.$namenew);
-			if(is_dir($fullpath.$nameold)){
-				if($file->exists($fullpath.$namenew)==false){
-					$file->rename($fullpath.$nameold,$fullpath.$namenew);
-					$this->error('Archivo Modificaded');
-				}else{
-					$this->error('Ya existe');
-				}
 
-			}elseif(is_file($fullpath.$nameold)){
-				if($file->exists($fullpath.$namenew)==false){
-					$file2 = new \SplFileInfo($fullpath.$nameold);				
-					if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
-						$filename = $file2->getFilename();
-						$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
-						$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
-						$file->remove($fullpaththumb_name);
+	/**
+	 * Renombra un archivo
+	 * @param string $nameold 
+	 * @param string $namenew 
+	 * @param string $path 
+	 * @return void
+	 */
+	public function rename($nameold,$namenew,$path){		
+		if($this->validNameFile($nameold) && $this->validNameFile($namenew)){
+			$fullpath = $this->getFullPath().$path;
+			$nameold = $this->clearNameFile($nameold);
+			$namenew = $this->clearNameFile($namenew);
+			
+			$file = new Filesystem;
+			if($file->exists($fullpath.$nameold)){
+				if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
+				if(is_dir($fullpath.$nameold)){
+					if($file->exists($fullpath.$namenew)==false){
+						$file->rename($fullpath.$nameold,$fullpath.$namenew);
+						// $this->setInfo(array("msg"=>'Archivo Modificaded'));
+						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
+						$this->setInfo(array("msg"=>$result));
+
+					}else{
+						// $this->setInfo(array("msg"=>'Ya existe'));
+						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
+						$this->setInfo(array("msg"=>$result,"status"=>false));
 					}
 
-					$file->rename($fullpath.$nameold,$fullpath.$namenew);
-					$file3 = new \SplFileInfo($fullpath.$namenew);				
-					$this->createThumb($file3,$path);				
-					$this->error('Archivo Modificaded');
-				}else{
-					$this->error('Ya existe');
+				}elseif(is_file($fullpath.$nameold)){
+					$extold = $this->getExtension($nameold);
+					$extnew = $this->getExtension($namenew);
+					if( $extold != $extnew ){
+						$result = array("query"=>"BE_RENAME_EXT_NOT_EQUALS","params"=>array());
+						$this->setInfo(array("msg"=>$result,"status"=>false));
+					}else{
+						// $namenew = $namenew.'.'.$this->getExtension($nameold);
+						if($file->exists($fullpath.$namenew)==false){
+							$file2 = new \SplFileInfo($fullpath.$nameold);				
+							if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
+								$filename = $file2->getFilename();
+								$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
+								$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+								$file->remove($fullpaththumb_name);
+							}
+
+							$file->rename($fullpath.$nameold,$fullpath.$namenew);
+							$file3 = new \SplFileInfo($fullpath.$namenew);				
+							$this->createThumb($file3,$path);				
+							// $this->setInfo(array("msg"=>'Archivo Modificaded'));
+							$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
+							$this->setInfo(array("msg"=>$result));
+						}else{
+							// $this->setInfo(array("msg"=>'Ya existe'));
+							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
+							$this->setInfo(array("msg"=>$result,"status"=>false));
+						}
+					}
+					
+					
 				}
-				
+			}else{
+				// $this->setInfo(array("msg"=>'Archivo no existe: '.$nameold, "status"=> false));
+				$result = array("query"=>"BE_RENAME_NOT_EXISTS","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=> false));
 			}
 		}else{
-			$this->error('Archivo no existe: '.$nameold);
-			$this->info['status'] = false;
+			$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
+			$this->setInfo(array("msg"=>$result, "status"=> false));
 		}
+		
 
 	}
 
@@ -491,34 +627,32 @@ class Filemanager
 		// var_dump($request->query->all());
 		// var_dump($request->request->all());
 		// var_dump($request->files->all());
-		// var_dump($request->query->post('accion'));
+		
 		$this->accion = $this->sanitize($request->request->get('accion'));
 		$path = $this->sanitize($request->request->get('path'));
-		// var_dump($request->files->get('file'));
-
-		// var_dump($this->validPath($path));
-		// var_dump($this->getFullPath());
-		// $this->log(__METHOD__.' - '.print_r($request->query->all(),true));
-		// $this->log(__METHOD__.' - '.print_r($request->files->get('file'),true));
+		
 		$jsonResponse = new JsonResponse;
 		if($this->validPath($path)==false){
-			$this->error('No valido $path: '.$path);
-			$this->log(__METHOD__.' - No valido $path: '.$path);
+			// $this->setInfo(array("msg"=>'No valido $path: '.$path));
+			$result = array("query"=>"BE_RUN_NOT_VALID %s","params"=>array($path));
+			$this->setInfo(array("msg"=>$result));
+
+			if( $this->config['debug'] ) $this->_log(__METHOD__.' - No valido $path: '.$path);
 		}else{
 			// var_dump($request->getMethod());
 			if($request->getMethod()=='POST'){
 				if($this->accion==='getfolder'){
 					$folders = $this->getAllFiles($path);
 					if(is_array($folders))				
-						$this->info['data'] = $folders;
+						$this->setInfo(array( "data" => $folders ));
 				}elseif($this->accion==='getinfo'){
 					$folders = $this->getAllFiles($path);
 					if(is_array($folders))		
-						$this->info['data'] = $folders;		
+						$this->setInfo(array( "data" => $folders ));
 				}elseif($this->accion==='uploadfile' ){
 					$files = $this->uploadAll($request->files->get('file'),$path);
 					if($files)		
-						$this->info['data'] = $files;		
+						$this->setInfo(array( "data" => $files ));
 				}elseif($this->accion==='newfolder'){
 					$name = $this->sanitize($request->request->get('name'));
 					$this->newFolder($name,$path);

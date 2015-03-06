@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>Filemanager</title>
 	<link rel="stylesheet" type="text/css" href="bower_components/fancybox/source/jquery.fancybox.css">
 	<link rel="stylesheet" type="text/css" href="bower_components/dropzone/dist/dropzone.css">
 	<link rel="stylesheet" type="text/css" href="dist/css/filemanager.css">
@@ -14,17 +14,20 @@
 <body>
 	<div class="container filemanager">
 		<input type="hidden" id="path" name="path" value="">
+		<div class="hidden">
+		<div id="preview_file"><span aria-hidden="true" class="glyphicon glyphicon-file txt"></span></div>
+		</div>
 
 		<div class="hidden">
 			<div id="data_item">
 				<div class="col-xs-6 col-sm-3 col-md-2">
 					<div class="item">
 						<a href="#" class="image"><img src=""></a>
-						<p data-toggle="tooltip" data-placement="top" title="el-mago-de-os-asas-a-fasdfsdfsdfsdf-Koala.jpg">el-mago-de-o...</p>
-						<button class="btn btn-default btn-xs rename" data-placement="top" title="Rename" data-toggle="modal" data-target="#rename_popup" data-name="">
+						<p data-toggle="tooltip" data-placement="top" title=""></p>
+						<button class="btn btn-default btn-xs rename" data-placement="top" title="RENAME" data-toggle="modal" data-target="#rename_popup" data-name="">
 							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
 						</button>
-						<button class="btn btn-default btn-xs delete" data-placement="top" title="Delete" data-toggle="modal" data-target="#delete_popup" data-name="">
+						<button class="btn btn-default btn-xs delete" data-placement="top" title="DELETE" data-toggle="modal" data-target="#delete_popup" data-name="">
 							<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 						</button>
 					</div>
@@ -35,9 +38,7 @@
 		<div class="modal fade" id="upload_popup" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		  <div class="modal-dialog modal-lg">
 		  	<div class="panel panel-default">
-		  	  <div class="panel-heading">
-		  	  	Upload
-		  	  </div>
+		  	  <div class="panel-heading">FE_UPLOAD</div>
 			  <div class="panel-body">
 			    
 		    	<div id="actions" class="row">
@@ -46,15 +47,15 @@
 			        <!-- The fileinput-button span is used to style the file input field as button -->
 			        <span class="btn btn-success fileinput-button dz-clickable">
 			            <i class="glyphicon glyphicon-plus"></i>
-			            <span>Add files...</span>
+			            <span>FE_ADD_FILES</span>
 			        </span>
 			        <button type="submit" class="btn btn-primary start">
 			            <i class="glyphicon glyphicon-upload"></i>
-			            <span>Start upload</span>
+			            <span>FE_START_UPLOAD</span>
 			        </button>
 			        <button type="reset" class="btn btn-warning cancel">
 			            <i class="glyphicon glyphicon-ban-circle"></i>
-			            <span>Cancel upload</span>
+			            <span>FE_CANCEL_UPLOAD</span>
 			        </button>
 			      </div>
 
@@ -96,15 +97,15 @@
 				    <div>
 				      <button data-dz-remove class="btn btn-warning cancel">
 				          <i class="glyphicon glyphicon-ban-circle"></i>
-				          <span>Cancel</span>
+				          <span>FE_CANCEL</span>
 				      </button>
 				      <button data-dz-remove class="btn btn-danger delete">
 				        <i class="glyphicon glyphicon-trash"></i>
-				        <span>Delete</span>
+				        <span>FE_DELETE</span>
 				      </button>
 				    </div>
 				  </div>
-				 <div class="row"><div class="col-lg-12"><div class="col-lg-12"><small class="text-info">Max 5 files upload</small></div></div></div>
+				 <div class="row"><div class="col-lg-12"><div class="col-lg-12"><small id="upload_max" class="text-info">FE_MAX_FILES_UPLOAD</small></div></div></div>
 				</div>
 		    
 			  </div>
@@ -119,18 +120,18 @@
 		    	<div class="modal-content">
 			      <div class="modal-header">
 			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-			        <h4 class="modal-title" id="myModalLabel">New Folder</h4>
+			        <h4 class="modal-title" id="myModalLabel">FE_NEW_FOLDER</h4>
 			      </div>
 			      <div class="modal-body">
 			        <div class="form-group">
-					    <label for="exampleInputEmail1">Name</label>
-					    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name">
+					    <label for="exampleInputEmail1">FE_NAME</label>
+					    <input type="text" class="form-control" id="name" name="name" placeholder="FE_ENTER_NAME">
 					</div>
 					<div id="newfolder_popup_result"></div>
 			      </div>
 			      <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-			        <button type="submit" class="btn btn-primary">Save</button>
+			        <button type="button" class="btn btn-default" data-dismiss="modal">FE_CLOSE</button>
+			        <button type="submit" class="btn btn-primary">FE_SAVE</button>
 			      </div>
 			    </div>
 		    </form>
@@ -144,15 +145,15 @@
 		    	<div class="modal-content">
 			      <div class="modal-header">
 			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-			        <h4 class="modal-title" id="myModalLabel">Delete</h4>
+			        <h4 class="modal-title" id="myModalLabel">FE_DELETE</h4>
 			      </div>
 			      <div class="modal-body">
 			        <div class="content"></div>
 					<div class="result"></div>
 			      </div>
 			      <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-			        <button type="submit" class="btn btn-primary">Delete</button>
+			        <button type="button" class="btn btn-default" data-dismiss="modal">FE_CLOSE</button>
+			        <button type="submit" class="btn btn-primary">FE_DELETE</button>
 			      </div>
 			    </div>
 		    </form>
@@ -166,21 +167,21 @@
 		    	<div class="modal-content">
 			      <div class="modal-header">
 			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-			        <h4 class="modal-title" id="myModalLabel">Rename</h4>
+			        <h4 class="modal-title" id="myModalLabel">FE_RENAME</h4>
 			      </div>
 			      <div class="modal-body">
 			        <div class="content">
 			        	<div class="form-group">
-						    <label for="exampleInputEmail1">Name</label>
+						    <label for="exampleInputEmail1">FE_NAME</label>
 						    <input type="hidden" name="nameold">
-						    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name">
+						    <input type="text" class="form-control" id="name" name="name" placeholder="FE_ENTER_NAME">
 						</div>
 			        </div>
 					<div class="result"></div>
 			      </div>
 			      <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-			        <button type="submit" class="btn btn-primary">Rename</button>
+			        <button type="button" class="btn btn-default" data-dismiss="modal">FE_CLOSE</button>
+			        <button type="submit" class="btn btn-primary">FE_RENAME</button>
 			      </div>
 			    </div>
 		    </form>
@@ -188,24 +189,24 @@
 		</div>
 		<!-- End Modal rename-->
 		<div class="row">
-			<div class="col-md-3">
+			<div class="col-sm-4 col-md-3">
 				<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
 			      <div class="btn-group" role="group" aria-label="First group">
-			        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#newfolder_popup">New Directory</button>
-			        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#upload_popup">Upload</button>
+			        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#newfolder_popup">FE_CREATE_DIRECTORY</button>
+			        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#upload_popup">FE_UPLOAD</button>
 			      </div>		      
 			     
 			    </div>
 			</div>
-			<div class="col-md-3">
+			<div class="col-sm-4 col-md-3">
 				<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
 		      
 			      <div class="btn-group" role="group" aria-label="First group">
 			        <div class="input-group search_content">
 				        
-				      <input id="search" name="search" type="text" class="form-control" placeholder="Search name files..." autocomplete="off" >
+				      <input id="search" name="search" type="text" class="form-control" placeholder="FE_SEARCH_NAME_FILES" autocomplete="off" >
 				      <span class="input-group-btn">
-				        <button class="btn btn-default" type="button" id="search_clear">Clear</button>
+				        <button class="btn btn-default" type="button" id="search_clear">FE_CLEAR</button>
 				      </span>
 			        
 				    </div>
@@ -222,7 +223,7 @@
 		</div>
 		<div class="row">
 			<div class="col-md-12 list">
-				<div id="scroll" class="scroll">
+				<div id="list" class="scroll">
 					<div id="loading"></div>
 				</div>
 			</div>
@@ -234,398 +235,12 @@
 	<script type="text/javascript" src="bower_components/jquery-validation/dist/jquery.validate.min.js"></script>
 	<script type="text/javascript" src="bower_components/dropzone/dist/dropzone.js"></script>
 	<script type="text/javascript" src="bower_components/fancybox/source/jquery.fancybox.js"></script>
-
-
+	<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>	
+	<script type="text/javascript" src="js/languaje/us.js"></script>
+	<script type="text/javascript" src="js/languaje/es.js"></script>
+	<script type="text/javascript" src="js/jquery.filemanager.js"></script>
 	<script type="text/javascript">
-
-function getFolder(path){
-	if(!path) path = '/';
-	var datos = {accion:"getfolder",path:path};
-	$.ajax({
-		type: "POST",
-		url: "conector.php",
-		data :  datos,							
-		beforeSend: function(objeto){
-			$("#scroll").html('<div id="loading"></div>');
-		},
-		success: function(datos){
-			var datos = $.parseJSON(datos);
-			// console.log(datos);
-			var item = $("#data_item > div");
-			if(datos.status){
-				var items = $("#scroll");
-				items.html('');
-				$.each(datos.data,function(index,element){
-					el = item.clone();					
-					if(element.filename=="" && element.filetype==""){
-						el.find('.image').html('<span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>');
-						el.find('p, button').remove();
-						el.find('.image').addClass('dir').attr('rel',element.url);
-						el.addClass('parentup');
-					}else if(element.filetype==""){
-						el.find('.image').html('<span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span>');
-						el.find('.image').addClass('dir').attr('rel',element.url);
-						var name = element.filename;if(name.length>18) name = name.substr(0,18)+'...';
-						el.find('p').attr('title',element.filename).text(name);
-						el.find('.delete').attr('data-name',element.filename);
-						el.find('.rename').attr('data-name',element.filename);
-
-					}else if(element.filetype=="jpg" || element.filetype=="png" || element.filetype=="jpeg" || element.filetype=="gif"){
-						el.find('.image img').attr('src',element.preview);
-						el.find('.image').addClass('fancybox').attr('href',element.path+element.filename).attr('title',element.filename);
-						var name = element.filename;if(name.length>18) name = name.substr(0,18)+'...';
-						el.find('p').attr('title',element.filename).text(name);
-						el.find('.delete').attr('data-name',element.filename);
-						el.find('.rename').attr('data-name',element.filename);
-					}else{
-						el.find('.image').html('<span class="glyphicon glyphicon-file '+ element.filetype +'" aria-hidden="true"></span>');
-						el.find('.image').addClass('fancybox').attr('href',element.path+element.filename);
-						var name = element.filename;if(name.length>18) name = name.substr(0,18)+'...';
-						el.find('p').attr('title',element.filename).text(name);
-						el.find('.delete').attr('data-name',element.filename);
-						el.find('.rename').attr('data-name',element.filename);
-					}
-					items.append(el);
-				});
-				
-				$("#path").val(path);
-				var ruta = path.split('/');
-				var temp = new Array();
-				var n = ruta.length;
-				for (var i = 0; i < n; i++) {
-					if(ruta[i]!==""){
-						temp.push(ruta[i]);
-					}
-				};
-				
-				var rutacontent = $("#ruta");
-				rutacontent.html('<li><a href="#" rel="/"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>');
-				var url ='/';
-				$.each(temp,function(index,element){
-					if( index < temp.length-1 ){
-						url = url + element + '/';
-						var el = $('<li><a href="#" rel="'+ url +'">'+element+'</a></li>');
-						rutacontent.append(el);
-					}else{
-						var el = $('<li>'+element+'</li>');
-						rutacontent.append(el);
-					}
-					
-				});
-				$(".item .dir, #ruta a").on('click', function(event) {
-					event.preventDefault();
-					getFolder($(this).attr('rel'));
-				});
-
-				$('[data-toggle="tooltip"]').tooltip();
-				 $('.fancybox').fancybox();
-				 searchFiles();
-				 
-			}
-		}
-	});
-}			
-function searchFiles(){
-	var text = $("#search").val();
-	console.log(text);
-	if(text===""){
-		$("#scroll > div").not('.parentup').removeClass('hidden');
-	}else{
-		$("#scroll > div").not('.parentup').each(function(index,element){
-			if($(element).find('p').text().indexOf(text) === -1 ){
-				$(element).addClass('hidden');
-			}else{
-				$(element).removeClass('hidden');
-			}
-		});
-	}
-}
-			$(document).ready( function() {
-				$("#search").on('keyup click', function(){
-					searchFiles();					
-				});
-				$("#search_clear").on('click', function(event) {
-					
-					$("#search").val('');
-					searchFiles();					
-				});
-				// Dropzone.options.myDropzone = { // Make the whole body a dropzone
-				// 	init: function() {
-				// 		// this.on("addedfile", function(file) {
-				// 		// 	// console.log(file);
-				// 		// 	// Create the remove button
-				// 	 //        var removeButton = Dropzone.createElement("<button>Remove file</button>");
-				// 	 //        // Capture the Dropzone instance as closure.
-				// 	 //        var _this = this;
-				// 	 //        // Listen to the click event
-				// 	 //        removeButton.addEventListener("click", function(e) {
-				// 	 //          // Make sure the button click doesn't submit the form:
-				// 	 //          e.preventDefault();
-				// 	 //          e.stopPropagation();
-
-				// 	 //          // Remove the file preview.
-				// 	 //          _this.removeFile(file);
-				// 	 //          // If you want to the delete the file on the server as well,
-				// 	 //          // you can do the AJAX request here.
-				// 	 //        });
-
-				// 	 //        // Add the button to the file preview element.
-				// 	 //        file.previewElement.appendChild(removeButton);
-				// 		// });
-				// 		// this.on("success", function(file, responseText) {
-				// 	 //      // Handle the responseText here. For example, add the text to the preview element:
-				// 	 //      file.previewTemplate.appendChild(document.createTextNode(responseText));
-				// 	 //    });
-				// 		this.on("complete", function(file) {
-				// 			console.log(file);
-				// 		})
-				// 	},
-				//   url: "conector.php", // Set the url
-				//   // thumbnailWidth: 80,
-				//   // thumbnailHeight: 80,
-				//   // parallelUploads: 20,
-				//   // previewTemplate: previewTemplate,
-				//   // autoQueue: false, // Make sure the files aren't queued until manually added
-				//   // previewsContainer: "#previews", // Define the container to display the previews
-				//   // clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
-				// };
-				// Dropzone.options.myDropzone.on("addedfile",function(file){
-				// 	console.log(file);
-				// });
-				// Dropzone.options.myDropzone.on("complete", function(file) {
-				//     console.log(file);
-				//   });
-			
-				var previewNode = document.querySelector("#template");
-previewNode.id = "";
-var previewTemplate = previewNode.parentNode.innerHTML;
-previewNode.parentNode.removeChild(previewNode);
- 
-var myDropzone = new Dropzone(document.body, { // Make the whole body a dropzone
-  url: "conector.php", // Set the url
-  thumbnailWidth: 80,
-  thumbnailHeight: 80,
-  parallelUploads: 20,
-  previewTemplate: previewTemplate,
-  autoQueue: false, // Make sure the files aren't queued until manually added
-  previewsContainer: "#previews", // Define the container to display the previews
-  clickable: ".fileinput-button", // Define the element that should be used as click trigger to select files.
-  maxFiles: 5,
-  // maxFilesize: 2
-  parallelUploads: 5,
-  uploadMultiple: true,
-});
- 
-myDropzone.on("addedfile", function(file) {
-  // Hookup the start button
-  console.log(file.previewElement);
-  var id = new Date().getTime();
-  file.previewElement.setAttribute("id",id);
-  $("#error-all").html('');
-  // file.previewElement.querySelector(".start").onclick = function() { myDropzone.enqueueFile(file); };
-});
-myDropzone.on("maxfilesexceeded", function(file) { this.removeFile(file); });
-// Update the total progress bar
-myDropzone.on("totaluploadprogress", function(progress) {
-  document.querySelector("#total-progress .progress-bar").style.width = progress + "%";
-});
- 
-myDropzone.on("sending", function(file) {
-  // Show the total progress bar when upload starts
-  document.querySelector("#total-progress").style.opacity = "1";
-  // And disable the start button
-  // file.previewElement.querySelector(".start").setAttribute("disabled", "disabled");
-});
- 
-// Hide the total progress bar when nothing's uploading anymore
-myDropzone.on("queuecomplete", function(progress) {
-  document.querySelector("#total-progress").style.opacity = "0";
-  // console.log('queuecomplete');  
-  // getFolder($("#path").val());
-  // console.log(progress);
-});
-myDropzone.on("processing", function(file) {
-  // this.options.params = {accion:"uploadfile", path : $("#path").val()};
-});
-myDropzone.on("processingmultiple", function(file) {
-  this.options.params = {accion:"uploadfile", path : $("#path").val()};
-});
-myDropzone.on("success", function(file, responseText, e) {
-  // console.log(file);
-  // console.log(responseText);
-	var datos = $.parseJSON(responseText);
-	if(datos.status){
-		$("#reloadfiles").val(1);		
-	}
-	
-
-  // console.log(e);
-});
-myDropzone.on("successmultiple", function(file, responseText, e) {
-  // console.log(file);
-  console.log(responseText);
-  	var datos = $.parseJSON(responseText);
-	if(datos.status==false)		
-		$("#error-all").html('<div class="alert alert-danger">'+datos.msg+'</div>');
-	else
-		$("#error-all").html('<div class="alert alert-success">'+datos.msg+'</div>');
-	
-
-  // console.log(e);
-});
-myDropzone.on("error", function(file, message) {
-	console.log(file);
-	console.log(message);
-  // this.options.params = {accion:"uploadfile", path : $("#path").val()};
-});
-// Setup the buttons for all transfers
-// The "add files" button doesn't need to be setup because the config
-// `clickable` has already been specified.
-document.querySelector("#actions .start").onclick = function() {
-  myDropzone.enqueueFiles(myDropzone.getFilesWithStatus(Dropzone.ADDED));
-};
-document.querySelector("#actions .cancel").onclick = function() {
-  myDropzone.removeAllFiles(true);
-  $("#error-all").html('');
-};
-				getFolder();
-				
-				// $('#exampleModal').on('show.bs.modal', function (event) {
-				//   var button = $(event.relatedTarget) // Button that triggered the modal
-				//   var recipient = button.data('whatever') // Extract info from data-* attributes
-				//   // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-				//   // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-				//   var modal = $(this)
-				//   modal.find('.modal-title').text('New Directory');
-				//   modal.find('.modal-body').html($("#newDirectory").html())
-				// });
-				$('#rename_popup').on('show.bs.modal', function (e) {
-				 	$("#name").val('');
-				 	$("#rename_popup .result").html('');
-				 	var button = $(e.relatedTarget);
-				 	var name = button.data('name');
-				 	var modal = $(this);
-				 	modal.find('.modal-body .content input[name="name"]').val(name.substr(0,name.lastIndexOf( "." )));
-				 	modal.find('.modal-body .content input[name="nameold"]').val(name);
-				 	modal.find('.modal-body .result').html('');
-				});
-				$("#rename_popup_form").validate({
-					rules:{
-						name:{
-							required:true,
-							minlength:1
-						}
-					},
-					submitHandler: function(form) {
-						var path = $("#path").val();
-						var datos = {accion:"renamefile",path:path};
-						// console.log($(form).serialize());
-						console.log($.param(datos));
-						datos = $.param(datos) +'&'+ $(form).serialize();
-						$.ajax({
-							type: "POST",
-							url: "conector.php",
-							data :  datos,							
-							beforeSend: function(objeto){
-								$("#rename_popup_form .result").html('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>');
-							},
-							success: function(datos){
-								var datos = $.parseJSON(datos);
-								if(datos.status){
-									getFolder(path);									
-									$("#rename_popup_form .result").html('<div class="alert alert-success">'+ datos.msg +'</div>');
-								}else{									
-									$("#rename_popup_form .result").html('<div class="alert alert-danger">'+ datos.msg +'</div>');
-								}								
-							}
-						});
-					}
-				});
-
-				$('#delete_popup').on('show.bs.modal', function (e) {
-				 	var button = $(e.relatedTarget);
-				 	var name = button.data('name');
-				 	var modal = $(this);
-				 	modal.find('.modal-body .content').html('<h3>Delete: '+ name+'</h3><input type="hidden" name="name" value="'+ name +'" />');
-				 	modal.find('.modal-body .result').html('');
-				});
-				
-				$("#delete_popup_form").validate({
-					submitHandler: function(form) {
-						var path = $("#path").val();
-						var datos = {accion:"deletefile",path:path};
-						// console.log($(form).serialize());
-						console.log($.param(datos));
-						datos = $.param(datos) +'&'+ $(form).serialize();
-						$.ajax({
-							type: "POST",
-							url: "conector.php",
-							data :  datos,							
-							beforeSend: function(objeto){
-								$("#delete_popup_form .result").html('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>');
-							},
-							success: function(datos){
-								var datos = $.parseJSON(datos);
-								if(datos.status){
-									getFolder(path);									
-									$("#delete_popup_form .result").html('<div class="alert alert-success">'+ datos.msg +'</div>');
-								}else{									
-									$("#delete_popup_form .result").html('<div class="alert alert-danger">'+ datos.msg +'</div>');
-								}								
-							}
-						});
-					}
-				});
-
-				$('#newfolder_popup').on('show.bs.modal', function (e) {
-				 	$("#name").val('');
-				 	$("#newfolder_popup_result").html('');
-				});
-				$('#upload_popup').on('hide.bs.modal', function (e) {
-				  myDropzone.removeAllFiles(true);
-				  if($("#reloadfiles").val()==1){				  					  	
-				  	$("#reloadfiles").val(0);
-				  	getFolder($("#path").val());
-				  }
-				})
-				$("#form_popup").validate({
-					rules:{
-						name:{
-							required:true,
-							minlength:1
-						}
-					},
-					submitHandler: function(form) {
-						var path = $("#path").val();
-						var datos = {accion:"newfolder",path:path};
-						// console.log($(form).serialize());
-						// console.log($.param(datos));
-						datos = $.param(datos) +'&'+ $(form).serialize();
-						$.ajax({
-							type: "POST",
-							url: "conector.php",
-							data :  datos,							
-							beforeSend: function(objeto){
-								$("#newfolder_popup_result").html('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>');
-							},
-							success: function(datos){
-								var datos = $.parseJSON(datos);
-								if(datos.status){
-									getFolder(datos.data.path);									
-									$("#newfolder_popup_result").html('<div class="alert alert-success">'+ datos.msg +'</div>');
-								}else{									
-									$("#newfolder_popup_result").html('<div class="alert alert-danger">'+ datos.msg +'</div>');
-								}
-								// console.log(data);
-								// $("#respuesta").removeClass('alert-info').addClass('alert-success');
-								// $("#respuesta").text(msg);
-								// $(".form input, .form textarea").not("input[type='submit']").val('');					
-							}
-						});
-					}
-				});
-			});
-
-		</script>
+		$("#list").filemanager();
+	</script>
 </body>
 </html>
