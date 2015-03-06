@@ -2,19 +2,18 @@
     "require": {        
         "symfony/finder": "~2.6",
         "symfony/http-foundation": "~2.6",
-        "codeception/codeception": "*",
-        "guzzlehttp/guzzle": "~5.0",
         "symfony/filesystem": "~2.6",
-        "monolog/monolog": "~1.12",
         "intervention/image": "~2.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.5"
+        "phpunit/phpunit": "~4.5",
+        "codeception/codeception": "*",
+        "guzzlehttp/guzzle": "~5.0",
+        "monolog/monolog": "~1.12"
     },
-    "autoload": {
-        "classmap": ["Php/Filemanager/"]
-    },
-    "psr-4": {
-        "Php\\Filemanager\\":"Php/Filemanager"
+    "autoload": {        
+        "psr-4": {
+            "Pqb\\":"Pqb"
+        }
     }
 }

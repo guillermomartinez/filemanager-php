@@ -1,5 +1,5 @@
 <?php
-namespace Php\Filemanager;
+namespace Pqb\Filemanager;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpFoundation\Request;
@@ -81,7 +81,7 @@ class Filemanager
 	}
 
 	/**
-	 * Valida la url path solo formato /directorio o /file.txt
+	 * Valida la url path solo formato /directorio/ o /file.txt
 	 * @param string $path 
 	 * @return boolean
 	 */

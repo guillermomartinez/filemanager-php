@@ -1,6 +1,6 @@
 <?php
 include("vendor/autoload.php");
-use Php\Filemanager\Filemanager;
+use Pqb\Filemanager\Filemanager;
 
 //$extra = array("path"=>"userfiles/demo/");
 $extra = array("debug"=>true,"separator" => "PqbFilemanager/userfiles","upload"=>array("size_max" => 2));

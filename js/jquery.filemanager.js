@@ -381,6 +381,8 @@
      $('.fancybox').fancybox({
         openEffect  : 'elastic',
         closeEffect : 'elastic',
+        minWidth : 300,
+        minHeight : 200,
         helpers : {
             title : {
                 type : 'inside'
@@ -437,7 +439,7 @@
         var button = $(e.relatedTarget);
         var name = button.data('name');
         var modal = $(this);
-        modal.find('.modal-body .content').html('<h3>Delete: '+ name +'</h3><input type="hidden" name="name" value="'+ name +'" />');
+        modal.find('.modal-body .content').html('<h3>'+ name +'</h3><input type="hidden" name="name" value="'+ name +'" />');
         modal.find('.modal-body .result').html('');
     });
     
