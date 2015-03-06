@@ -3,6 +3,7 @@ node_modules/*
 coverage/*
 src/log/*
 public/userfiles/*
+!public/userfiles/.htaccess
 tests/userfiles/*
 tests/_output/*
 vendor/*
