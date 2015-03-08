@@ -172,7 +172,8 @@ class Filemanager
 	 */
 	public function createThumb($file,$path){
 		$ext = $file->getExtension();
-		if(array_search($ext, $this->config["images"]["images_ext"])){
+		$search = $this->config["images"]["images_ext"];
+		if(array_search($ext, $search) !== false){
 			$fullpath = $this->getFullPath().$path;
 			$fullpaththumb = $this->getFullPath().'/_thumbs'.$path;
 			$filename = $file->getFilename();
@@ -190,6 +191,8 @@ class Filemanager
 				$image->save($fullpaththumb_name);
 			}
 			return $filename_new;
+		}else{
+			if( $this->config['debug'] ) $this->_log(__METHOD__." - $ext");
 		}
 		
 	}

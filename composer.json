@@ -2,13 +2,15 @@
     "name": "guillermomartinez/filemanager",
     "description": "Filemanager",
     "license": "MIT",
+    "keyworks": "filemanager",
     "authors": [
         {
         "name": "Guillermo M.",
         "email": "guille_55_88@hotmail.com"
         }
     ],
-    "require": {        
+    "require": {
+        "php": ">=5.4.0",
         "symfony/finder": "~2.6",
         "symfony/http-foundation": "~2.6",
         "symfony/filesystem": "~2.6",
