@@ -2,8 +2,7 @@ bower_components/*
 node_modules/*
 coverage/*
 src/log/*
-public/userfiles/*
-!public/userfiles/.htaccess
+public
 tests/userfiles/*
 tests/_output/*
 vendor/*

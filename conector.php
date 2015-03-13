@@ -1,5 +1,5 @@
 <?php
-include("../vendor/autoload.php");
+include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
 //$extra = array("path"=>"userfiles/demo/");
