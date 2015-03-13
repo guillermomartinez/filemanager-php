@@ -47,15 +47,13 @@ class Filemanager
 		        "images_ext" => array("jpg","jpeg","gif","png"),
 		        "resize" => array("thumbWidth" => 80,"thumbHeight" => 80)
 		    ),
-		);
-		// if($this->config["doc_root"]=="") $this->config["doc_root"] = $_SERVER['DOCUMENT_ROOT'];
+		);		
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];		
 		if(count($extra)>0) $this->setup($extra);
 		if($this->config['debug']){
 			$this->log = new Logger('filemanager');
 			$this->log->pushHandler(new StreamHandler($this->config['debugfile']));
-		}
-		// var_dump($this->config);
+		}		
 	}
 
 	/**
@@ -151,13 +149,10 @@ class Filemanager
 				$thumb =  $this->createThumb($file,$path);
 				if($thumb){
 					$item['preview'] = '/'.$this->config['separator'].'/_thumbs'.$path.$thumb;
-				}
-				// $item['path'] = str_replace($item['filename'],'',$item['path']);
-				// var_dump($item['path']);
+				}				
 				if($file->isWritable()==false)
 					$item['writable'] = 1;			
 			}
-			// var_dump($item);
 			return $item;
 		}else{
 			return ;
@@ -238,8 +233,6 @@ class Filemanager
 	public function getAllFiles($path){
 			
 		$fullpath = $this->getFullPath().$path;
-		// var_dump(__DIR__);
-		// var_dump($fullpath);
 		if(file_exists($fullpath)){
 			$file = new \SplFileInfo($fullpath);
 			if($file->isDir()){
@@ -256,22 +249,19 @@ class Filemanager
 				$t = $this->fileInfo($file,$path);
 				if($t){
 					return $t;
-				}else{
-					// $this->setInfo(array("msg"=>"Archivo no leible"));
+				}else{					
 					$result = array("query"=>"BE_GETFILEALL_NOT_LEIBLE","params"=>array());
 					$this->setInfo(array("msg"=>$result));
 					if( $this->config['debug'] ) $this->_log(__METHOD__." - Archivo no leible - $fullpath");
 					return;
 				} 
 			}elseif($file->isLink()){
-				// $this->setInfo(array("msg"=>"Archivo no permitido"));
 				$result = array("query"=>"BE_GETFILEALL_NOT_PERMITIDO","params"=>array());
 				$this->setInfo(array("msg"=>$result));
 				if( $this->config['debug'] ) $this->_log(__METHOD__." - path desconocido - $fullpath");
 				return ;
 			}
 		}else{
-			// $this->setInfo(array("msg"=>"No existe el archivo"));
 			$result = array("query"=>"BE_GETFILEALL_NOT_EXISTED","params"=>array());
 			$this->setInfo(array("msg"=>$result));
 			if( $this->config['debug'] ) $this->_log(__METHOD__." - No existe el archivo - $fullpath");
@@ -345,8 +335,6 @@ class Filemanager
 		$upload_max_filesize =  ini_get('upload_max_filesize');
 		$post_max_size =  ini_get('post_max_size');
 		$size_max = min($upload_max_filesize, $post_max_size);
-		// var_dump($upload_max_filesize, $post_max_size);
-		// $this->_log(__METHOD__.": $size_max MB");
 
 		return $size_max;
 	}
@@ -360,7 +348,6 @@ class Filemanager
 	public function upload($file,$path){
 		if( $this->validExt($file->getClientOriginalName())){
 			if($file->getClientSize() > ($this->getMaxUploadFileSize() * 1024 * 1024) ){
-				// $this->setInfo(array("msg"=>"file size no permitido server: ".$file->getClientSize()));
 				
 				$result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_SERVER","params"=>array($file->getClientSize()));
 				$this->setInfo(array("msg"=>$result));
@@ -368,7 +355,6 @@ class Filemanager
 				if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido server: ".$file->getClientSize());
 				return ;
 			}elseif($file->getClientSize() > ($this->config['upload']['size_max'] * 1024 * 1024) ){
-				// $this->setInfo(array("msg"=>"file size no permitido: ".$file->getClientSize()));
 
 				$result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_PERMITIDO","params"=>array($file->getClientSize()));
 				$this->setInfo(array("msg"=>$result));
@@ -402,7 +388,6 @@ class Filemanager
 				
 			}
 		}else{
-			// $this->setInfo(array("msg"=>"file no permitido","status"=>false));
 			if( $this->config['debug'] ) $this->_log(__METHOD__." - file extension no permitido: ".$file->getExtension());
 		}
 		
@@ -432,11 +417,8 @@ class Filemanager
 				}
 				$r = '';
 				$n2 = count($res);			
-				// $r = 'Subido: %s / %s';
 				$result = array("query"=>"BE_UPLOADALL_UPLOADS %s / %s","params"=>array($n2,$n));
 				if(count($notresult)>0){
-					// $r .= ' | Not permitido: ';
-					// $r .= implode(',', $notresult);
 					$result['query'] = $result['query'].' | BE_UPLOADALL_NOT_UPLOADS '; 
 					$i=0;
 					$n = count($notresult);
@@ -450,16 +432,12 @@ class Filemanager
 						$i++;
 						
 					}
-				}
-				// $this->setInfo(array("msg"=>$r));
-				
+				}				
 				$this->setInfo(array("msg"=>$result));
 				return $res;
 			}else{
-				// $this->setInfo(array("msg"=>"Max upload: ".$this->config['upload']['number'],"status"=>false));
 				$result = array("query"=>"BE_UPLOAD_MAX_UPLOAD %s MB","params"=>array($this->config['upload']['number']));
-				$this->setInfo(array("msg"=>$result,"status"=>false));
-				
+				$this->setInfo(array("msg"=>$result,"status"=>false));				
 			}
 		}else{
 			return ;
@@ -494,15 +472,12 @@ class Filemanager
 		$namefile = $this->clearNameFile($namefile);
 		$dir = new Filesystem;
 		if($dir->exists($fullpath.$namefile)){
-			// $this->setInfo(array("msg"=>"Ya existe: ".$path.$namefile,"status"=>false));
 			$result = array("query"=>"BE_NEW_FOLDER_EXISTED %s","params"=>array($path.$namefile));
 			$this->setInfo(array("msg"=>$result,"status"=>false));
-
 			if( $this->config['debug'] ) $this->_log(__METHOD__." - Ya existe: ".$path.$namefile);
 			return false;
 		}else{
 			$dir->mkdir($fullpath.$namefile);
-			// $this->setInfo(array("msg"=>"Creado: ".$path.$namefile,"data"=>array( "path" => $path, "namefile" => $namefile )));
 			$result = array("query"=>"BE_NEW_FOLDER_CREATED %s","params"=>array($path.$namefile));
 			$this->setInfo(array("msg"=>$result,"data"=>array( "path" => $path, "namefile" => $namefile )));
 			return true;
@@ -523,7 +498,6 @@ class Filemanager
 			if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 			if(is_dir($fullpath.$namefile)){
 				$file->remove($fullpath.$namefile);
-				// $this->setInfo(array("msg"=>'Archivo deleted'));
 				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
 				$this->setInfo(array("msg"=>$result));
 			}elseif(is_file($fullpath.$namefile)){
@@ -533,12 +507,10 @@ class Filemanager
 				$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
 				$file->remove($fullpaththumb_name);
 				$file->remove($fullpath.$namefile);
-				// $this->setInfo(array("msg"=>'Archivo deleted'));
 				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
 				$this->setInfo(array("msg"=>$result));
 			}
 		}else{
-			// $this->setInfo(array("msg"=>'Archivo no existe: '.$namefile, "status"=> false));			
 			$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
 			$this->setInfo(array("msg"=>$result, "status"=> false));
 		}
@@ -564,16 +536,13 @@ class Filemanager
 				if(is_dir($fullpath.$nameold)){
 					if($file->exists($fullpath.$namenew)==false){
 						$file->rename($fullpath.$nameold,$fullpath.$namenew);
-						// $this->setInfo(array("msg"=>'Archivo Modificaded'));
 						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
 						$this->setInfo(array("msg"=>$result));
 
 					}else{
-						// $this->setInfo(array("msg"=>'Ya existe'));
 						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
 						$this->setInfo(array("msg"=>$result,"status"=>false));
 					}
-
 				}elseif(is_file($fullpath.$nameold)){
 					$extold = $this->getExtension($nameold);
 					$extnew = $this->getExtension($namenew);
@@ -581,7 +550,6 @@ class Filemanager
 						$result = array("query"=>"BE_RENAME_EXT_NOT_EQUALS","params"=>array());
 						$this->setInfo(array("msg"=>$result,"status"=>false));
 					}else{
-						// $namenew = $namenew.'.'.$this->getExtension($nameold);
 						if($file->exists($fullpath.$namenew)==false){
 							$file2 = new \SplFileInfo($fullpath.$nameold);				
 							if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
@@ -590,24 +558,18 @@ class Filemanager
 								$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
 								$file->remove($fullpaththumb_name);
 							}
-
 							$file->rename($fullpath.$nameold,$fullpath.$namenew);
 							$file3 = new \SplFileInfo($fullpath.$namenew);				
 							$this->createThumb($file3,$path);				
-							// $this->setInfo(array("msg"=>'Archivo Modificaded'));
 							$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
 							$this->setInfo(array("msg"=>$result));
 						}else{
-							// $this->setInfo(array("msg"=>'Ya existe'));
 							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
 							$this->setInfo(array("msg"=>$result,"status"=>false));
 						}
 					}
-					
-					
 				}
 			}else{
-				// $this->setInfo(array("msg"=>'Archivo no existe: '.$nameold, "status"=> false));
 				$result = array("query"=>"BE_RENAME_NOT_EXISTS","params"=>array());
 				$this->setInfo(array("msg"=>$result, "status"=> false));
 			}
@@ -615,8 +577,6 @@ class Filemanager
 			$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
 			$this->setInfo(array("msg"=>$result, "status"=> false));
 		}
-		
-
 	}
 
 	/**
@@ -626,23 +586,15 @@ class Filemanager
 	public function run(){
 		$request = Request::createFromGlobals();
 		$request->getPathInfo();
-		// var_dump($request->getMethod());
-		// var_dump($request->query->all());
-		// var_dump($request->request->all());
-		// var_dump($request->files->all());
-		
 		$this->accion = $this->sanitize($request->request->get('accion'));
 		$path = $this->sanitize($request->request->get('path'));
 		
 		$jsonResponse = new JsonResponse;
 		if($this->validPath($path)==false){
-			// $this->setInfo(array("msg"=>'No valido $path: '.$path));
 			$result = array("query"=>"BE_RUN_NOT_VALID %s","params"=>array($path));
 			$this->setInfo(array("msg"=>$result));
-
 			if( $this->config['debug'] ) $this->_log(__METHOD__.' - No valido $path: '.$path);
 		}else{
-			// var_dump($request->getMethod());
 			if($request->getMethod()=='POST'){
 				if($this->accion==='getfolder'){
 					$folders = $this->getAllFiles($path);
