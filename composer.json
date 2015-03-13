@@ -26,5 +26,6 @@
         "psr-4": {
             "GuillermoMartinez\\":"src/GuillermoMartinez"
         }
-    }
+    },
+    "minimum-stability": "stable"
 }
