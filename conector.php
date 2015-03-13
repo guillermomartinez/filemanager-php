@@ -2,8 +2,7 @@
 include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
-$extra = array("debug"=>false,"separator" => "public/userfiles","upload"=>array("size_max" => 10));
-// $extra = array();
+$extra = array("separator" => "filemanager/userfiles"));
 $f = new Filemanager($extra);
 $f->run();
 ?>
