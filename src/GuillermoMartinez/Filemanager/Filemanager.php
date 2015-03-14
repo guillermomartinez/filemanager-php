@@ -35,7 +35,7 @@ class Filemanager
 		$this->config = array(
 			"doc_root" => "",
 			"separator" => "userfiles",
-			"debug" => true,
+			"debug" => false,
 			"debugfile" => __DIR__."/../../log/filemanager.log",
 			"ext" => array("jpg","jpeg","gif","png","svg","txt","pdf","odp","ods","odt","rtf","doc","docx","xls","xlsx","ppt","pptx","csv","ogv","mp4","webm","m4v","ogg","mp3","wav","zip","rar"),
 		    "upload" => array(
