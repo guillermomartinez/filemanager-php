@@ -17,7 +17,7 @@ crea un archivo conector.php en el directorio public_html
 include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
-$extra = array("separator" => "filemanager/userfiles"));
+$extra = array("separator" => "filemanager/userfiles");
 $f = new Filemanager($extra);
 $f->run();
 ?>
