@@ -45,7 +45,7 @@ class Filemanager
 		    ),
 		  	"images" => array(
 		        "images_ext" => array("jpg","jpeg","gif","png"),
-		        "resize" => array("thumbWidth" => 80,"thumbHeight" => 80)
+		        "resize" => array("thumbWidth" => 120,"thumbHeight" => 90)
 		    ),
 		);		
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];		
@@ -537,7 +537,7 @@ class Filemanager
 					if($file->exists($fullpath.$namenew)==false){
 						$file->rename($fullpath.$nameold,$fullpath.$namenew);
 						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
-						$this->setInfo(array("msg"=>$result));
+						$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
 
 					}else{
 						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
@@ -545,28 +545,23 @@ class Filemanager
 					}
 				}elseif(is_file($fullpath.$nameold)){
 					$extold = $this->getExtension($nameold);
-					$extnew = $this->getExtension($namenew);
-					if( $extold != $extnew ){
-						$result = array("query"=>"BE_RENAME_EXT_NOT_EQUALS","params"=>array());
-						$this->setInfo(array("msg"=>$result,"status"=>false));
-					}else{
-						if($file->exists($fullpath.$namenew)==false){
-							$file2 = new \SplFileInfo($fullpath.$nameold);				
-							if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
-								$filename = $file2->getFilename();
-								$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
-								$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
-								$file->remove($fullpaththumb_name);
-							}
-							$file->rename($fullpath.$nameold,$fullpath.$namenew);
-							$file3 = new \SplFileInfo($fullpath.$namenew);				
-							$this->createThumb($file3,$path);				
-							$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
-							$this->setInfo(array("msg"=>$result));
-						}else{
-							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
-							$this->setInfo(array("msg"=>$result,"status"=>false));
+					$namenew = $namenew.'.'.$extold;					
+					if($file->exists($fullpath.$namenew)==false){
+						$file2 = new \SplFileInfo($fullpath.$nameold);				
+						if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
+							$filename = $file2->getFilename();
+							$filename_old = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
+							$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_old;
+							$file->remove($fullpaththumb_name);
 						}
+						$file->rename($fullpath.$nameold,$fullpath.$namenew);
+						$file3 = new \SplFileInfo($fullpath.$namenew);				
+						$this->createThumb($file3,$path);				
+						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
+						$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
+					}else{
+						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
+						$this->setInfo(array("msg"=>$result,"status"=>false));
 					}
 				}
 			}else{
