@@ -7,3 +7,6 @@ tests/userfiles/*
 tests/_output/*
 vendor/*
 composer.lock
+userfiles/*
+!/userfiles/.htaccess
+!/userfiles/web.config

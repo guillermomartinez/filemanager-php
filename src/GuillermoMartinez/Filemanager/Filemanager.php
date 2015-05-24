@@ -19,16 +19,20 @@ class Filemanager
 	public $accion = '';
 	public $path = '';
 	public $log = null;
-	private $info = array("data"=>array(),"status"=>true,"msg"=>array("query"=>"","params"=>array()));
+	private $info = array(
+		"data"=>array(),
+		"status"=>true,
+		"msg"=>array("query"=>"","params"=>array())
+	);
 	private $fileDetails = array(
-				"urlfolder" => '',
-				"filename" => "",
-				"filetype" => "",
-				"lastmodified" => "",
-				"previewfull" => "",				
-				"preview" => "",				
-				"size" => "",
-				);
+		"urlfolder" => '',
+		"filename" => "",
+		"filetype" => "",
+		"lastmodified" => "",
+		"previewfull" => "",				
+		"preview" => "",				
+		"size" => "",
+	);
 
 	public function __construct($extra=array()){
 		$this->config = array(
@@ -96,10 +100,11 @@ class Filemanager
 	 * @param string $filename 
 	 * @return boolean
 	 */
-	public function validNameFile($filename){
+	public function validNameFile($filename,$ext=true){
 		$filename = trim($filename);
 		if($filename!="." && $filename!=".." && $filename!=" " && preg_match_all("#^[a-zA-Z0-9-_.\s]+$#",$filename) > 0){
-			return $this->validExt($filename);			
+			if($ext) return $this->validExt($filename);
+			else return true;
 		}else{
 			return false;
 		}
@@ -120,6 +125,102 @@ class Filemanager
 		}
 
 
+	}
+
+	/**
+	 * Agrega mensaje a cada peticion si se produce un error
+	 * @param array $data 
+	 * @return void
+	 */
+	public function setInfo($data=array()) {
+		if(isset($data['data'])) $this->info['data'] = $data['data'];
+		if(isset($data['status'])) $this->info['status'] = $data['status'];
+		if(isset($data['msg'])) $this->info['msg'] = $data['msg'];
+		
+	}
+
+	/**status
+	 * Si debug active permite logear informacion
+	 * @param string $string Texto a mostrar
+	 * @return void
+	 */
+	public function _log($string) {
+		$this->log->addError($string);
+	}
+
+	/**
+	 * Clear var
+	 * @param string $var 
+	 * @return string
+	 */
+	private function sanitize($var) {
+		$sanitized = strip_tags($var);
+		$sanitized = str_replace('http://', '', $sanitized);
+		$sanitized = str_replace('https://', '', $sanitized);
+		$sanitized = str_replace('../', '', $sanitized);
+		return $sanitized;
+	}
+	
+	/**
+	 * Clear name folder
+	 * @param string $var 
+	 * @return string
+	 */
+	private function sanitizeNameFolder($var) {
+		$sanitized = strip_tags($var);
+		$sanitized = str_replace('.', '', $sanitized);
+		return $sanitized;
+	}
+
+	/**
+	 * Remove extension
+	 * @param string $filename 
+	 * @return string
+	 */
+	public function removeExtension($filename)
+	{
+		return substr($filename,0,strrpos( $filename, '.' ) ) ;
+	}
+
+	/**
+	 * Obtiene la extensión de un nombre de archivo
+	 * @param string $nameFile 
+	 * @return string
+	 */
+	public function getExtension($nameFile){
+		$extension = substr( $nameFile, ( strrpos($nameFile, '.') + 1 ) ) ;
+		$extension = strtolower( $extension ) ;
+		return $extension;
+	}
+
+	/**
+	 * Obtiene el tamaño maximo permitido por el servidor
+	 * @return int
+	 */
+	public function getMaxUploadFileSize() {
+			
+		$upload_max_filesize =  ini_get('upload_max_filesize');
+		$post_max_size =  ini_get('post_max_size');
+		$size_max = min($upload_max_filesize, $post_max_size);
+
+		return $size_max;
+	}
+	
+	/**
+	 * Limpia el nombre de archivo
+	 * @param string $namefile 
+	 * @return string
+	 */
+	public function clearNameFile($namefile){
+		$namefile = strip_tags($namefile);
+		$namefile = trim($namefile);
+		$buscar = array("á","é","í","ó","ú","ñ","Ñ","Á","É","Í","Ó","Ú","ü","Ü");
+		$reemplazar = array("a","e","i","o","u","n","n","a","e","i","o","u","u","U");
+		$namefile = str_replace($buscar,$reemplazar,$namefile);
+		$namefile = preg_replace("/[\s]+/", '-', $namefile);
+		$namefile = preg_replace("/[^a-zA-Z0-9._-]/", '', $namefile);
+		$namefile = strtolower($namefile);
+		return $namefile;
 	}
 
 	/**
@@ -268,73 +369,7 @@ class Filemanager
 		
 	}
 
-	/**
-	 * Agrega mensaje a cada peticion si se produce un error
-	 * @param array $data 
-	 * @return void
-	 */
-	public function setInfo($data=array()) {
-		if(isset($data['data'])) $this->info['data'] = $data['data'];
-		if(isset($data['status'])) $this->info['status'] = $data['status'];
-		if(isset($data['msg'])) $this->info['msg'] = $data['msg'];
-		
-	}
 
-	/**status
-	 * Si debug active permite logear informacion
-	 * @param string $string Texto a mostrar
-	 * @return void
-	 */
-	public function _log($string) {
-		$this->log->addError($string);
-	}
-
-	/**
-	 * Clear var
-	 * @param string $var 
-	 * @return string
-	 */
-	private function sanitize($var) {
-		$sanitized = strip_tags($var);
-		$sanitized = str_replace('http://', '', $sanitized);
-		$sanitized = str_replace('https://', '', $sanitized);
-		$sanitized = str_replace('../', '', $sanitized);
-		return $sanitized;
-	}
-
-	/**
-	 * Remove extension
-	 * @param string $filename 
-	 * @return string
-	 */
-	public function removeExtension($filename)
-	{
-		return substr($filename,0,strrpos( $filename, '.' ) ) ;
-	}
-
-	/**
-	 * Obtiene la extensión de un nombre de archivo
-	 * @param string $nameFile 
-	 * @return string
-	 */
-	public function getExtension($nameFile){
-		$extension = substr( $nameFile, ( strrpos($nameFile, '.') + 1 ) ) ;
-		$extension = strtolower( $extension ) ;
-		return $extension;
-	}
-
-	/**
-	 * Obtiene el tamaño maximo permitido por el servidor
-	 * @return int
-	 */
-	public function getMaxUploadFileSize() {
-			
-		$upload_max_filesize =  ini_get('upload_max_filesize');
-		$post_max_size =  ini_get('post_max_size');
-		$size_max = min($upload_max_filesize, $post_max_size);
-
-		return $size_max;
-	}
 
 	/**
 	 * Mueve un arcivo subido
@@ -365,7 +400,7 @@ class Filemanager
 					$namefile = $this->clearNameFile($namefile);
 					$nametemp = $namefile;
 					if( $this->config["upload"]["overwrite"] ==false){
-						$ext = $file->getClientOriginalExtension();
+						$ext = $this->getExtension($namefile);
 						$i=0;
 						while(true){
 							$pathnametemp = $dir.$nametemp;
@@ -441,22 +476,7 @@ class Filemanager
 		}		
 	}
 
-	/**
-	 * Limpia el nombre de archivo
-	 * @param string $namefile 
-	 * @return string
-	 */
-	public function clearNameFile($namefile){
-		$namefile = strip_tags($namefile);
-		$namefile = trim($namefile);
-		$buscar = array("á","é","í","ó","ú","ñ","Ñ","Á","É","Í","Ó","Ú","ü","Ü");
-		$reemplazar = array("a","e","i","o","u","n","n","a","e","i","o","u","u","U");
-		$namefile = str_replace($buscar,$reemplazar,$namefile);
-		$namefile = preg_replace("/[\s]+/", '-', $namefile);
-		$namefile = preg_replace("/[^a-zA-Z0-9._-]/", '', $namefile);
-		$namefile = strtolower($namefile);
-		return $namefile;
-	}
+	
 
 	/**
 	 * Renombre una carpeta
@@ -467,6 +487,7 @@ class Filemanager
 	public function newFolder($namefile,$path){
 		$fullpath = $this->getFullPath().$path;
 		$namefile = $this->clearNameFile($namefile);
+		$namefile = $this->sanitizeNameFolder($namefile);
 		$dir = new Filesystem;
 		if($dir->exists($fullpath.$namefile)){
 			$result = array("query"=>"BE_NEW_FOLDER_EXISTED %s","params"=>array($path.$namefile));
@@ -523,7 +544,7 @@ class Filemanager
 	 * @return void
 	 */
 	public function rename($nameold,$namenew,$path){		
-		if($this->validNameFile($nameold) && $this->validNameFile($namenew)){
+		if($this->validNameFile($nameold,false) && $this->validNameFile($namenew,false)){
 			$fullpath = $this->getFullPath().$path;
 			$nameold = $this->clearNameFile($nameold);
 			$namenew = $this->clearNameFile($namenew);
@@ -532,6 +553,7 @@ class Filemanager
 			if($file->exists($fullpath.$nameold)){
 				if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
 				if(is_dir($fullpath.$nameold)){
+					$namenew = $this->sanitizeNameFolder($namenew);
 					if($file->exists($fullpath.$namenew)==false){
 						$file->rename($fullpath.$nameold,$fullpath.$namenew);
 						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
@@ -542,24 +564,29 @@ class Filemanager
 						$this->setInfo(array("msg"=>$result,"status"=>false));
 					}
 				}elseif(is_file($fullpath.$nameold)){
-					$extold = $this->getExtension($nameold);
-					$namenew = $namenew.'.'.$extold;					
-					if($file->exists($fullpath.$namenew)==false){
-						$file2 = new \SplFileInfo($fullpath.$nameold);				
-						if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
-							$filename = $file2->getFilename();
-							$filename_old = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
-							$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_old;
-							$file->remove($fullpaththumb_name);
+					if($this->validExt($nameold)){
+						$extold = $this->getExtension($nameold);
+						$namenew = $namenew.'.'.$extold;					
+						if($file->exists($fullpath.$namenew)==false){
+							$file2 = new \SplFileInfo($fullpath.$nameold);				
+							if($file2->getExtension() == 'jpg' || $file2->getExtension() == 'jpeg' || $file2->getExtension() == 'png' || $file2->getExtension() == 'gif'){
+								$filename = $file2->getFilename();
+								$filename_old = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
+								$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_old;
+								$file->remove($fullpaththumb_name);
+							}
+							$file->rename($fullpath.$nameold,$fullpath.$namenew);
+							$file3 = new \SplFileInfo($fullpath.$namenew);				
+							$this->createThumb($file3,$path);				
+							$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
+							$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
+						}else{
+							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
+							$this->setInfo(array("msg"=>$result,"status"=>false));
 						}
-						$file->rename($fullpath.$nameold,$fullpath.$namenew);
-						$file3 = new \SplFileInfo($fullpath.$namenew);				
-						$this->createThumb($file3,$path);				
-						$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
-						$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
 					}else{
-						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
-						$this->setInfo(array("msg"=>$result,"status"=>false));
+						$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
+						$this->setInfo(array("msg"=>$result, "status"=> false));
 					}
 				}
 			}else{
