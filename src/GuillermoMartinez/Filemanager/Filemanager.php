@@ -508,31 +508,73 @@ class Filemanager
 	 * @param string $path 
 	 * @return void
 	 */
-	public function delete($namefile,$path){		
-		$fullpath = $this->getFullPath().$path;
-		$namefile = $this->clearNameFile($namefile);
-		$file = new Filesystem;
-		if($file->exists($fullpath.$namefile)){
-			if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
-			if(is_dir($fullpath.$namefile)){
-				$file->remove($fullpath.$namefile);
-				$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
-				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
-				$this->setInfo(array("msg"=>$result));
-			}elseif(is_file($fullpath.$namefile)){
-				$file2 = new \SplFileInfo($fullpath.$namefile);				
-				$filename = $file2->getFilename();
-				$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
-				$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
-				$file->remove($fullpaththumb_name);
-				$file->remove($fullpath.$namefile);
-				$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
-				$this->setInfo(array("msg"=>$result));
+	public function delete($namefiles,$path){	
+		if(is_string($namefiles)){
+			$namefile = $this->sanitize($namefiles);
+			$fullpath = $this->getFullPath().$path;
+			$namefile = $this->clearNameFile($namefile);
+			$file = new Filesystem;
+			if($this->validNameFile($namefile) && $file->exists($fullpath.$namefile)){
+				if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+				if(is_dir($fullpath.$namefile)){
+					$file->remove($fullpath.$namefile);
+					$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
+					$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+					$this->setInfo(array("msg"=>$result));
+				}elseif(is_file($fullpath.$namefile)){
+					$file2 = new \SplFileInfo($fullpath.$namefile);				
+					$filename = $file2->getFilename();
+					$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
+					$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+					$file->remove($fullpaththumb_name);
+					$file->remove($fullpath.$namefile);
+					$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+					$this->setInfo(array("msg"=>$result));
+				}
+			}else{
+				if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=> false));
 			}
-		}else{
-			$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-			$this->setInfo(array("msg"=>$result, "status"=> false));
+		}elseif(is_array($namefiles)){
+			if(count($namefiles)>0){
+				// $namefile = $this->sanitize($namefile);
+				$fullpath = $this->getFullPath().$path;
+				// $namefile = $this->clearNameFile($namefile);
+				$data = array();
+				foreach ($namefiles as $key => $namefile) {
+					$file = new Filesystem;
+					if($this->validNameFile($namefile,false) && $file->exists($fullpath.$namefile)){
+						if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+						if(is_dir($fullpath.$namefile)){
+							$file->remove($fullpath.$namefile);
+							$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
+							$data[] = array("status"=>true,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+							// $this->setInfo(array("msg"=>$result));
+						}elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
+							$file2 = new \SplFileInfo($fullpath.$namefile);				
+							$filename = $file2->getFilename();
+							$filename_new = $this->removeExtension($filename).'-'.$this->config['images']['resize']['thumbWidth'].'x'.$this->config['images']['resize']['thumbHeight'].'.'.$file2->getExtension();
+							$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+							$file->remove($fullpaththumb_name);
+							$file->remove($fullpath.$namefile);
+							$data[] = array("status"=>true,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+							// $result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+							// $this->setInfo(array("msg"=>$result));
+						}else{
+							$data[] = array("status"=>false,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+						}
+					}else{
+						$data[] = array("status"=>false,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+					}
+				}
+				$this->setInfo(array("data"=>$data));
+			}else{
+				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=> false));
+			}
 		}
+		
 
 	}
 
@@ -653,7 +695,8 @@ class Filemanager
 					$namenew = $this->sanitize($request->request->get('name'));					
 					$this->rename($nameold,$namenew,$path);
 				}elseif($this->accion==='deletefile'){
-					$name = $this->sanitize($request->request->get('name'));
+					// $name = $this->sanitize($request->request->get('name'));
+					$name = $request->request->get('name');
 					$this->delete($name,$path);
 				}
 			}

@@ -7,7 +7,7 @@ use GuillermoMartinez\Filemanager\Filemanager;
 $extra = array(
 	"source" => "filemanager/userfiles",
 	"url" => "../",
-	"doc_root" => "D:\\wamp\\www\\github",
+	"doc_root" => "D:/wamp/www/github",
 	"debug" => true,
 	);
 $f = new Filemanager($extra);
