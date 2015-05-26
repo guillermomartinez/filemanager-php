@@ -1,6 +1,7 @@
 bower_components/*
 node_modules/*
 coverage/*
+log/*
 src/log/*
 public
 tests/userfiles/*

@@ -2,13 +2,11 @@
 include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
-// agrega tu propio metodo de autenticacion
+// Add your own authentication method
 
 $extra = array(
-	"source" => "filemanager/userfiles",
-	"url" => "../",
-	"doc_root" => "D:/wamp/www/github",
-	"debug" => true,
+	"source" => "github/filemanager/userfiles",
+	"debug" => false,
 	);
 $f = new Filemanager($extra);
 $f->run();
