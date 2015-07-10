@@ -12,28 +12,71 @@ use Symfony\Component\Filesystem\Filesystem;
 use Intervention\Image\ImageManager;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-
 class Filemanager
 {
+	/**
+	 * configurate options
+	 * 
+	 * @var [array]
+	 */
 	private $config;
-	public $accion = '';
+
+	/**
+	 * actions = getfolder|uploadfile|newfolder|renamefile|deletefile|download
+	 * 
+	 * @var string
+	 */
+	public $action = '';
+
+	/**
+	 * path directory to search
+	 * 
+	 * @var string
+	 */
 	public $path = '';
+
+	/**
+	 * instance of Logger
+	 * 
+	 * @var Logger
+	 */
 	public $log = null;
+
+	/**
+	 * data of return
+	 * data=[fileDetails|stringResult]
+	 * 1=ok , 0=warning
+	 * // query="BE_UPLOADALL_UPLOADS %s / %s" , params=[1, 2]
+	 * 
+	 * @var array
+	 */
 	private $info = array(
 		"data"=>array(),
-		"status"=>true,
+		"status"=>1,
 		"msg"=>array("query"=>"","params"=>array())
-	);
+		);
+
+	/**
+	 * details of file
+	 * 
+	 * @var array
+	 */
 	private $fileDetails = array(
 		"urlfolder" => '',
 		"filename" => "",
 		"filetype" => "",
+		"isdir" => false,
 		"lastmodified" => "",
 		"previewfull" => "",				
 		"preview" => "",				
 		"size" => "",
-	);
+		);
 
+	/**
+	 * Create new Filemanager
+	 * 
+	 * @param array $extra overwrites settings
+	 */
 	public function __construct($extra=array()){
 		$this->config = array(
 			"doc_root" => "",
@@ -42,18 +85,22 @@ class Filemanager
 			"debug" => false,
 			"debugfile" => "log/filemanager.log",
 			"ext" => array("jpg","jpeg","gif","png","svg","txt","pdf","odp","ods","odt","rtf","doc","docx","xls","xlsx","ppt","pptx","csv","ogv","mp4","webm","m4v","ogg","mp3","wav","zip","rar"),
-		    "upload" => array(
-		        "number" => 5,
-		        "overwrite" => false,
-		        "size_max" => 10
-		    ),
-		  	"images" => array(
-		        "images_ext" => array("jpg","jpeg","gif","png"),
-		        "resize" => array("thumbWidth" => 120,"thumbHeight" => 90)
-		    ),
-		);		
+			"upload" => array(
+				"number" => 5,
+				"overwrite" => false,
+				"size_max" => 10
+				),
+			"images" => array(
+				"images_ext" => array("jpg","jpeg","gif","png"),
+				"resize" => array("thumbWidth" => 120,"thumbHeight" => 90)
+				),
+			"type_file" => null,
+			);		
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];		
 		if(count($extra)>0) $this->setup($extra);
+		if($this->config['type_file']=='images'){
+			$this->config['ext'] = $this->config['images']['images_ext'];
+		}
 		if($this->config['debug']){
 			$this->log = new Logger('filemanager');
 			$this->log->pushHandler(new StreamHandler($this->config['debugfile']));
@@ -199,7 +246,7 @@ class Filemanager
 	 * @return int
 	 */
 	public function getMaxUploadFileSize() {
-			
+
 		$upload_max_filesize =  ini_get('upload_max_filesize');
 		$post_max_size =  ini_get('post_max_size');
 		$size_max = min($upload_max_filesize, $post_max_size);
@@ -241,14 +288,15 @@ class Filemanager
 			
 			if($file->isDir()){
 				$item["filetype"] = '';
+				$item["isdir"] = true;
 				$item["urlfolder"] = $path.$item["filename"].'/';
 				$item['preview'] = '';
 			}elseif($file->isFile()){
 				$thumb =  $this->createThumb($file,$path);
 				if($thumb){
-					$item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
 					$item['preview'] = $this->config['url'].$this->config['source'].'/_thumbs'.$path.$thumb;
 				}								
+				$item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
 			}
 			return $item;
 		}else{
@@ -287,37 +335,6 @@ class Filemanager
 			if( $this->config['debug'] ) $this->_log(__METHOD__." - $ext");
 		}
 	}
-
-	/**
-	 * Crear la carpeta para subir de nivel
-	 * @param string $path 
-	 * @return array
-	 */
-	public function folderParent($path){	
-		if($path != '/' && $path !="" ){			
-			$params = explode("/",$path);
-			$path = '/';
-			$temp = array();
-			foreach ($params as $key => $value) {
-				if($value!=""){
-					$temp[] = $value;
-				}
-			}
-			$n = count($temp);
-			if($n>1){
-				for ($i=0; $i < $n-1 ; $i++) { 
-					$path .= $temp[$i].'/';
-				}
-			}
-
-		}
-		$item = $this->fileDetails;
-		$item["urlfolder"] = $path;
-		$item["filename"] = "";
-		$item["filetype"] = "";
-		$item['preview'] = "";
-		return $item;
-	}
 	
 	/**
 	* Lista carpeta y archivos segun el path ingresado, no recursivo, ordenado por tipo y nombre
@@ -326,21 +343,24 @@ class Filemanager
 	* @return array|null Listado de archivos o null si no existe
 	*/
 	public function getAllFiles($path){
-			
+
 		$fullpath = $this->getFullPath().$path;
 		if(file_exists($fullpath)){
 			$file = new \SplFileInfo($fullpath);
 			if($file->isDir()){
 				$r = array();
-				if($path != "/") $r[] = $this->folderParent($path);
+				// if($path != "/") $r[] = $this->folderParent($path);
 				$finder = new Finder();
-				$directories = $finder->notName('_thumbs')->notName('web.config')->notName('.htaccess')->depth(0)->sortByType()->in($fullpath);
+				$directories = $finder->notName('_thumbs')->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
+				
+				// $directories = $directories->files()->name('*.jpg');
+				$directories = $directories->in($fullpath);
 				foreach ($directories as $key => $directorie) {
 					$namefile = $directorie->getFilename();
 					if($directorie->isDir() && $this->validNameFile($namefile,false)){
 						$t = $this->fileInfo($directorie,$path);
 						if($t) $r[] = $t;
-					}elseif($directorie->isFile() && $this->validNameFile($namefile)){
+					}elseif($directorie->isFile() && $this->validNameFile($namefile)){					
 						$t = $this->fileInfo($directorie,$path);
 						if($t) $r[] = $t;
 					}					
@@ -461,12 +481,13 @@ class Filemanager
 						$i++;
 						
 					}
+					$this->setInfo(array("status"=>0));
 				}				
 				$this->setInfo(array("msg"=>$result));
 				return $res;
 			}else{
 				$result = array("query"=>"BE_UPLOAD_MAX_UPLOAD %s MB","params"=>array($this->config['upload']['number']));
-				$this->setInfo(array("msg"=>$result,"status"=>false));				
+				$this->setInfo(array("msg"=>$result,"status"=>0));				
 			}
 		}else{
 			return ;
@@ -486,7 +507,7 @@ class Filemanager
 		$dir = new Filesystem;
 		if($dir->exists($fullpath.$namefile)){
 			$result = array("query"=>"BE_NEW_FOLDER_EXISTED %s","params"=>array($path.$namefile));
-			$this->setInfo(array("msg"=>$result,"status"=>false));
+			$this->setInfo(array("msg"=>$result,"status"=>0));
 			if( $this->config['debug'] ) $this->_log(__METHOD__." - Ya existe: ".$path.$namefile);
 			return false;
 		}else{
@@ -528,12 +549,12 @@ class Filemanager
 				}else{
 					if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 					$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-					$this->setInfo(array("msg"=>$result, "status"=> false));
+					$this->setInfo(array("msg"=>$result, "status"=> 0));
 				}
 			}else{
 				if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=> false));
+				$this->setInfo(array("msg"=>$result, "status"=> 0));
 			}
 		}elseif(is_array($namefiles)){
 			if(count($namefiles)>0){
@@ -546,7 +567,7 @@ class Filemanager
 						if(is_dir($fullpath.$namefile)){
 							$file->remove($fullpath.$namefile);
 							$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
-							$data[] = array("status"=>true,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+							$data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
 						}elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
 							$file2 = new \SplFileInfo($fullpath.$namefile);				
 							$filename = $file2->getFilename();
@@ -554,18 +575,18 @@ class Filemanager
 							$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
 							$file->remove($fullpaththumb_name);
 							$file->remove($fullpath.$namefile);
-							$data[] = array("status"=>true,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+							$data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
 						}else{
-							$data[] = array("status"=>false,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+							$data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
 						}
 					}else{
-						$data[] = array("status"=>false,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+						$data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
 					}
 				}
 				$this->setInfo(array("data"=>$data));
 			}else{
 				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=> false));
+				$this->setInfo(array("msg"=>$result, "status"=> 0));
 			}
 		}
 	}
@@ -595,7 +616,7 @@ class Filemanager
 
 					}else{
 						$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
-						$this->setInfo(array("msg"=>$result,"status"=>false));
+						$this->setInfo(array("msg"=>$result,"status"=>0));
 					}
 				}elseif(is_file($fullpath.$nameold)){
 					if($this->validExt($nameold)){
@@ -616,20 +637,20 @@ class Filemanager
 							$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
 						}else{
 							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
-							$this->setInfo(array("msg"=>$result,"status"=>false));
+							$this->setInfo(array("msg"=>$result,"status"=>0));
 						}
 					}else{
 						$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
-						$this->setInfo(array("msg"=>$result, "status"=> false));
+						$this->setInfo(array("msg"=>$result, "status"=>0));
 					}
 				}
 			}else{
 				$result = array("query"=>"BE_RENAME_NOT_EXISTS","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=> false));
+				$this->setInfo(array("msg"=>$result, "status"=>0));
 			}
 		}else{
 			$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
-			$this->setInfo(array("msg"=>$result, "status"=> false));
+			$this->setInfo(array("msg"=>$result, "status"=>0));
 		}
 	}
 
@@ -658,41 +679,37 @@ class Filemanager
 		$jsonResponse = new JsonResponse;
 
 		if($request->getMethod()=='POST'){
-			$this->accion = $this->sanitize($request->request->get('accion'));
+			$this->action = $this->sanitize($request->request->get('action'));
 			$path = $this->sanitize($request->request->get('path'));
 			if($this->validPath($path)==false){
 				$result = array("query"=>"BE_RUN_NOT_VALID %s","params"=>array($path));
 				$this->setInfo(array("msg"=>$result));
 				if( $this->config['debug'] ) $this->_log(__METHOD__.' - No valido $path: '.$path);
-			}else{
-				if($this->accion==='getfolder'){
+			}else{				
+				if($this->action==='getfolder'){
 					$folders = $this->getAllFiles($path);
 					if(is_array($folders))				
-						$this->setInfo(array( "data" => $folders ));
-				}elseif($this->accion==='getinfo'){
-					$folders = $this->getAllFiles($path);
-					if(is_array($folders))		
-						$this->setInfo(array( "data" => $folders ));
-				}elseif($this->accion==='uploadfile' ){
+						$this->setInfo(array( "data" => $folders ));				
+				}elseif($this->action==='uploadfile' ){
 					$files = $this->uploadAll($request->files->get('file'),$path);
 					if($files)		
 						$this->setInfo(array( "data" => $files ));
-				}elseif($this->accion==='newfolder'){
+				}elseif($this->action==='newfolder'){
 					$name = $this->sanitize($request->request->get('name'));
 					$this->newFolder($name,$path);
 
-				}elseif($this->accion==='renamefile'){
+				}elseif($this->action==='renamefile'){
 					$nameold = $this->sanitize($request->request->get('nameold'));
 					$namenew = $this->sanitize($request->request->get('name'));					
 					$this->rename($nameold,$namenew,$path);
-				}elseif($this->accion==='deletefile'){
+				}elseif($this->action==='deletefile'){
 					$name = $request->request->get('name');
 					$this->delete($name,$path);
 				}
 			}
 
 		}elseif($request->getMethod()=='GET'){
-			$this->accion = $this->sanitize($request->query->get('accion'));
+			$this->action = $this->sanitize($request->query->get('action'));
 			$path = $this->sanitize($request->query->get('path'));
 			$name = $this->sanitize($request->query->get('name'));
 			if($this->validPath($path)==false){
@@ -700,7 +717,7 @@ class Filemanager
 				$this->setInfo(array("msg"=>$result));
 				if( $this->config['debug'] ) $this->_log(__METHOD__.' - No valido $path: '.$path);
 			}else{
-				if($this->accion==='download'){
+				if($this->action==='download'){
 					$this->download($name,$path);
 				}
 			}
