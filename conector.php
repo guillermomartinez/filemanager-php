@@ -3,6 +3,8 @@ include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
 // Add your own authentication method
+//if(!isset($_SESSION['username']) || $_SESSION['username']!="")
+//	exit();
 
 $extra = array(
 	"source" => "github/filemanager/userfiles",
