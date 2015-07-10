@@ -1,8 +1,8 @@
 {
-    "name": "guillermomartinez/filemanager",
-    "description": "Filemanager",
+    "name": "guillermomartinez/filemanager-php",
+    "description": "Filemanager for php",
     "license": "MIT",
-    "keyworks": "filemanager",
+    "keyworks": "filemanager php",
     "authors": [
         {
         "name": "Guillermo M.",
