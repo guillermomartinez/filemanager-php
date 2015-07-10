@@ -1,5 +1,5 @@
 # Filemanager
-Es el Backend del Filemanger, [guillermomartinez/filemanager-ui](https://github.com/guillermomartinez/filemanager-ui) es el Frontend.
+Es el conector del Filemanger, [guillermomartinez/filemanager-ui](https://github.com/guillermomartinez/filemanager-ui) es la interfaz gráfica.
 
 ## Requiere
 - PHP >= 5.4
@@ -8,7 +8,7 @@ Es el Backend del Filemanger, [guillermomartinez/filemanager-ui](https://github.
 
 ## instalación
 ```
-composer require guillermomartinez/filemanager-php:dev-master
+composer require guillermomartinez/filemanager-php:0.1.*
 ```
 crea un archivo conector.php en el directorio public_html
 
@@ -27,8 +27,8 @@ separator: Son las carpetas que separan la carpeta public_html a la carpeta user
 Instale https://github.com/guillermomartinez/filemanager-ui para la interfaz de usuario
 
 ## Demo
-http://php-filemanager.rhcloud.com/filemanager-ui/
+http://php-filemanager.rhcloud.com/
 
-![demo1](https://cloud.githubusercontent.com/assets/5642429/7805759/be21ea9a-033d-11e5-9914-68ccad1299c5.png)
-![demo2](https://cloud.githubusercontent.com/assets/5642429/7805789/4c9441b0-033e-11e5-883e-0a3a3e3fbe50.png)
-![demo3](https://cloud.githubusercontent.com/assets/5642429/7805788/4c8fdc24-033e-11e5-84ef-e3cecc5736c4.png)
+![demo2](https://cloud.githubusercontent.com/assets/5642429/8630887/aec46114-2731-11e5-9a7b-907127d77891.jpg)
+![demo1](https://cloud.githubusercontent.com/assets/5642429/8630885/ae7e7122-2731-11e5-88bb-b8fd2f5ae9a5.jpg)
+![demo3](https://cloud.githubusercontent.com/assets/5642429/8630886/aeaa1b7e-2731-11e5-9097-cafeefba1aea.jpg)
