@@ -17,12 +17,23 @@ crea un archivo conector.php en el directorio public_html
 include("vendor/autoload.php");
 use GuillermoMartinez\Filemanager\Filemanager;
 
-$extra = array("source" => "filemanager/userfiles");
+// Add your own authentication method
+//if(!isset($_SESSION['username']) || $_SESSION['username']!="")
+//  exit();
+$extra = array(
+    // path after of root folder
+    "source" => "userfiles",
+    // url domain
+    "url" => "http://php-filemanager.rhcloud.com/",
+    "debug" => false,
+    );
+if(isset($_POST['typeFile']) && $_POST['typeFile']=='images'){
+    $extra['type_file'] = 'images';
+}
 $f = new Filemanager($extra);
 $f->run();
 ?>
 ```
-separator: Son las carpetas que separan la carpeta public_html a la carpeta userfiles
 
 Instale https://github.com/guillermomartinez/filemanager-ui para la interfaz de usuario
 
