@@ -21,12 +21,16 @@ use GuillermoMartinez\Filemanager\Filemanager;
 //if(!isset($_SESSION['username']) || $_SESSION['username']!="")
 //  exit();
 $extra = array(
-    // path after of root folder
-    "source" => "userfiles",
-    // url domain
-    "url" => "http://php-filemanager.rhcloud.com/",
-    "debug" => false,
-    );
+	// path after of root folder
+	// if /var/www/public_html is your document root web server
+	// then source= usefiles o filemanager/usefiles
+	"source" => "userfiles",
+	// url domain
+	// so that the files and show well http://php-filemanager.rhcloud.com/userfiles/imagen.jpg
+	// o http://php-filemanager.rhcloud.com/filemanager/userfiles/imagen.jpg
+	"url" => "http://php-filemanager.rhcloud.com/",
+	"debug" => false,
+	);
 if(isset($_POST['typeFile']) && $_POST['typeFile']=='images'){
     $extra['type_file'] = 'images';
 }
