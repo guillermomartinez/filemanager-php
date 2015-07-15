@@ -1,12 +1,12 @@
-# Filemanager
-Es el conector del Filemanger, [guillermomartinez/filemanager-ui](https://github.com/guillermomartinez/filemanager-ui) es la interfaz gráfica.
+# Filemanager for PHP
+It is the connector to the File Manager, [guillermomartinez/filemanager-ui](https://github.com/guillermomartinez/filemanager-ui) It is the GUI.
 
-## Requiere
+## Required
 - PHP >= 5.4
 - Fileinfo Extension
 - GD Library
 
-## instalación
+## Installation
 ```
 composer require guillermomartinez/filemanager-php:0.1.*
 ```
@@ -39,9 +39,9 @@ $f->run();
 ?>
 ```
 
-Instale https://github.com/guillermomartinez/filemanager-ui para la interfaz de usuario
+Install https://github.com/guillermomartinez/filemanager-ui for user interface.
 
-## Demo
+##Demo
 http://php-filemanager.rhcloud.com/
 
 ![demo2](https://cloud.githubusercontent.com/assets/5642429/8630887/aec46114-2731-11e5-9a7b-907127d77891.jpg)
