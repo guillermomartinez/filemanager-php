@@ -1,8 +1,8 @@
 {
     "name": "guillermomartinez/filemanager-php",
-    "description": "Filemanager for php",
+    "description": "Filemanager for php, it is the connector to the File Manager, regardless of the GUI.",
     "license": "MIT",
-    "keyworks": "filemanager php",
+    "keyworks": ["filemanager","php","filemanager php","upload","file","manager"],
     "authors": [
         {
         "name": "Guillermo M.",
