@@ -10,7 +10,7 @@ It is the connector to the File Manager, [guillermomartinez/filemanager-ui](http
 ```
 composer require guillermomartinez/filemanager-php:0.1.*
 ```
-crea un archivo conector.php en el directorio public_html
+Create file conector.php in folder public_html
 
 ```
 <?php
