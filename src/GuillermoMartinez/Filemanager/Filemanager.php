@@ -9,7 +9,7 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Filesystem\Filesystem;
-use Intervention\Image\ImageManager;
+use Gregwar\Image\Image as Imagen;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class Filemanager
@@ -325,10 +325,11 @@ class Filemanager
 				if( $this->config['debug'] ) $this->_log(__METHOD__." - ".$fullpaththumb_name);
 				if($filethumb->exists($fullpaththumb) == false){
 					$filethumb->mkdir($fullpaththumb);
-				}
-				$manager = new ImageManager();
-				$image = $manager->make($fullpath.$file->getFilename())->fit($this->config['images']['resize']['thumbWidth'],$this->config['images']['resize']['thumbHeight'],function ($constraint) {$constraint->upsize();});
-				$image->save($fullpaththumb_name);
+				}								
+				Imagen::open($fullpath.$file->getFilename())
+					->zoomCrop($this->config['images']['resize']['thumbWidth'],$this->config['images']['resize']['thumbHeight'])
+					->save($fullpaththumb_name);
+
 			}
 			return $filename_new;
 		}else{
