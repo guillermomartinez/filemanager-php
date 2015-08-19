@@ -3,8 +3,6 @@ It is the connector to the File Manager, [guillermomartinez/filemanager-ui](http
 
 ## Required
 - PHP >= 5.4
-- Fileinfo Extension
-- GD Library
 
 ## Installation
 ```
