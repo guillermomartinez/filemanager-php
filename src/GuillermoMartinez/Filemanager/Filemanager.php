@@ -217,6 +217,7 @@ class Filemanager
 	private function sanitizeNameFolder($var) {
 		$sanitized = strip_tags($var);
 		$sanitized = str_replace('.', '', $sanitized);
+		$sanitized = preg_replace('@(\/)+@', '/', $sanitized);
 		return $sanitized;
 	}
 
@@ -654,6 +655,66 @@ class Filemanager
 			$this->setInfo(array("msg"=>$result, "status"=>0));
 		}
 	}
+	/**
+	 * Mueve un archivo o directorio
+	 * @param  string $nameold nombre del archivo
+	 * @param  string $pathnew ruta del directorio destino
+	 * @param  string $path    ruta del directorio origen
+	 * @return void          
+	 */
+	public function move($nameold,$pathnew,$path){		
+		if($this->validNameFile($nameold,false) && preg_match_all("#^/{1}$|^/[a-z0-9A-Z]{1}([a-z0-9A-Z-_/])*(/|[a-z0-9A-Z-_]{1,})+$#",$pathnew) > 0){
+			if($path=='/')
+				$fullpath = $this->getFullPath();
+			else
+				$fullpath = $this->getFullPath().$path;
+			$nameold = $this->clearNameFile($nameold);			
+			$fullpathnew = $this->sanitizeNameFolder($this->getFullPath().$pathnew);
+			if( $this->config['debug'] ) $this->_log('$fullpath - '.$fullpath);
+			if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
+			if( $this->config['debug'] ) $this->_log('$fullpathnew/$nameold - '.$fullpathnew.'/'.$nameold);
+
+			if(strpos($fullpathnew.'/'.$nameold,$fullpath.$nameold.'/')!==false ){
+				$result = array("query"=>"BE_MOVE_FILENAME_NOT_VALID","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=>0));
+				return;
+			}
+			$file = new Filesystem;
+			if($file->exists($fullpath.$nameold)){
+				if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
+				
+				if(is_dir($fullpath.$nameold)){					
+					if($file->exists($fullpathnew)==false){
+						$file->mkdir($fullpathnew);
+					}					
+					$file->rename($fullpath.$nameold,$fullpathnew.'/'.$nameold);
+					$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
+					$fullpathnew_result = ($pathnew =='/') ? '/'.$nameold : $pathnew.'/'.$nameold;
+					$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $fullpathnew_result)));
+					
+				}elseif(is_file($fullpath.$nameold)){
+					if($this->validExt($nameold)){
+						if($file->exists($fullpathnew)==false){
+							$file->mkdir($fullpathnew);
+						}					
+						$file->rename($fullpath.$nameold,$fullpathnew.'/'.$nameold);
+						$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
+						$fullpathnew_result = ($pathnew =='/') ? '/'.$nameold : $pathnew.'/'.$nameold;
+						$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $fullpathnew_result)));
+					}else{
+						$result = array("query"=>"BE_MOVE_FILENAME_NOT_VALID","params"=>array());
+						$this->setInfo(array("msg"=>$result, "status"=>0));
+					}
+				}
+			}else{
+				$result = array("query"=>"BE_MOVE_NOT_EXISTS","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=>0));
+			}
+		}else{
+			$result = array("query"=>"BE_MOVE_FILENAME_NOT_VALID","params"=>array());
+			$this->setInfo(array("msg"=>$result, "status"=>0));
+		}
+	}
 
 	public function download($name,$path){
 		$ruta = $this->getFullPath().$path.$name;
@@ -703,9 +764,15 @@ class Filemanager
 					$nameold = $this->sanitize($request->request->get('nameold'));
 					$namenew = $this->sanitize($request->request->get('name'));					
 					$this->rename($nameold,$namenew,$path);
+				}elseif($this->action==='movefile'){
+					$nameold = $this->sanitize($request->request->get('nameold'));
+					$namenew = $this->sanitize($request->request->get('name'));					
+					$this->move($nameold,$namenew,$path);
 				}elseif($this->action==='deletefile'){
 					$name = $request->request->get('name');
 					$this->delete($name,$path);
+				}else{
+					$this->setInfo(array("status"=>0));
 				}
 			}
 
