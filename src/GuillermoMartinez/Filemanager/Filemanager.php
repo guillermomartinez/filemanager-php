@@ -186,13 +186,19 @@ class Filemanager
 		
 	}
 
-	/**status
+	/**
 	 * Si debug active permite logear informacion
 	 * @param string $string Texto a mostrar
+	 * @param string $type Tipo de mensaje
 	 * @return void
 	 */
-	public function _log($string) {
-		$this->log->addError($string);
+	public function _log($string,$type='info') {
+		if($type=='info')
+			$this->log->addInfo($string);
+		elseif($type=='warning')
+			$this->log->addWarning($string);
+		elseif($type=='error')
+			$this->log->addError($string);
 	}
 
 	/**
