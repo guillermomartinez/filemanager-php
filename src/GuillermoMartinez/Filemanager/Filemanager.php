@@ -214,10 +214,13 @@ class Filemanager
 	 * @param string $var 
 	 * @return string
 	 */
-	private function sanitizeNameFolder($var) {
+	private function sanitizeNameFolder($var,$strict=false) {
 		$sanitized = strip_tags($var);
 		$sanitized = str_replace('.', '', $sanitized);
 		$sanitized = preg_replace('@(\/)+@', '/', $sanitized);
+		if($strict){
+			if(substr($sanitized,-1)=='/') $sanitized = substr($sanitized,0,-1);
+		}
 		return $sanitized;
 	}
 
@@ -664,43 +667,60 @@ class Filemanager
 	 */
 	public function move($nameold,$pathnew,$path){		
 		if($this->validNameFile($nameold,false) && preg_match_all("#^/{1}$|^/[a-z0-9A-Z]{1}([a-z0-9A-Z-_/])*(/|[a-z0-9A-Z-_]{1,})+$#",$pathnew) > 0){
-			if($path=='/')
-				$fullpath = $this->getFullPath();
-			else
-				$fullpath = $this->getFullPath().$path;
-			$nameold = $this->clearNameFile($nameold);			
-			$fullpathnew = $this->sanitizeNameFolder($this->getFullPath().$pathnew);
+			$nameold = $this->clearNameFile($nameold);
+			$fullpath = $this->sanitizeNameFolder($this->getFullPath().$path,true);
+			$fullpathnew = $this->sanitizeNameFolder($this->getFullPath().$pathnew,true);
 			if( $this->config['debug'] ) $this->_log('$fullpath - '.$fullpath);
-			if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
+			if( $this->config['debug'] ) $this->_log('$fullpathnew - '.$fullpathnew);
+			if( $this->config['debug'] ) $this->_log('$fullpath/$nameold - '.$fullpath.'/'.$nameold);
 			if( $this->config['debug'] ) $this->_log('$fullpathnew/$nameold - '.$fullpathnew.'/'.$nameold);
 
-			if(strpos($fullpathnew.'/'.$nameold,$fullpath.$nameold.'/')!==false ){
-				$result = array("query"=>"BE_MOVE_FILENAME_NOT_VALID","params"=>array());
+			if($fullpath == $fullpathnew || $fullpath.'/'.$nameold==$fullpathnew.'/'.$nameold){
+				if( $this->config['debug'] ) $this->_log('$path == $pathnew Equals');
+				$result = array("query"=>"BE_MOVE_PATH_NOT_VALID","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=>0));
+				return;
+			}elseif(strpos($fullpathnew.'/'.$nameold,$fullpath.'/'.$nameold.'/')!==false ){
+				if( $this->config['debug'] ) $this->_log('$pathnew internal of source - '.$pathnew);
+				$result = array("query"=>"BE_MOVE_PATH_NOT_VALID","params"=>array());
+				$this->setInfo(array("msg"=>$result, "status"=>0));
+				return;
+			}elseif(strpos($fullpath.'/'.$nameold,$fullpathnew.'/'.$nameold.'/')!==false ){
+				if( $this->config['debug'] ) $this->_log('$pathnew not moved in same folder - '.$pathnew);
+				$result = array("query"=>"BE_MOVE_PATH_NOT_VALID","params"=>array());
 				$this->setInfo(array("msg"=>$result, "status"=>0));
 				return;
 			}
 			$file = new Filesystem;
-			if($file->exists($fullpath.$nameold)){
-				if( $this->config['debug'] ) $this->_log('$fullpath.$nameold - '.$fullpath.$nameold);
-				
-				if(is_dir($fullpath.$nameold)){					
-					if($file->exists($fullpathnew)==false){
-						$file->mkdir($fullpathnew);
-					}					
-					$file->rename($fullpath.$nameold,$fullpathnew.'/'.$nameold);
-					$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
-					$fullpathnew_result = ($pathnew =='/') ? '/'.$nameold : $pathnew.'/'.$nameold;
-					$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $fullpathnew_result)));
-					
-				}elseif(is_file($fullpath.$nameold)){
-					if($this->validExt($nameold)){
+			if($file->exists($fullpath.'/'.$nameold)){				
+				if(is_dir($fullpath.'/'.$nameold)){	
+					if($file->exists($fullpathnew.'/'.$nameold)===false){										
 						if($file->exists($fullpathnew)==false){
 							$file->mkdir($fullpathnew);
 						}					
-						$file->rename($fullpath.$nameold,$fullpathnew.'/'.$nameold);
+						$file->rename($fullpath.'/'.$nameold,$fullpathnew.'/'.$nameold);
 						$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
-						$fullpathnew_result = ($pathnew =='/') ? '/'.$nameold : $pathnew.'/'.$nameold;
+						$fullpathnew_result = $this->sanitizeNameFolder($pathnew.'/'.$nameold,true);
 						$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $fullpathnew_result)));
+					}else{
+						$result = array("query"=>"BE_MOVE_FOLDER_EXISTED","params"=>array());
+						$this->setInfo(array("msg"=>$result, "status"=>0));
+					}
+					
+				}elseif(is_file($fullpath.'/'.$nameold)){
+					if($this->validExt($nameold)){
+						if($file->exists($fullpathnew.'/'.$nameold)===false){						
+							if($file->exists($fullpathnew)==false){
+								$file->mkdir($fullpathnew);
+							}					
+							$file->rename($fullpath.'/'.$nameold,$fullpathnew.'/'.$nameold);
+							$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
+							$fullpathnew_result = $this->sanitizeNameFolder($pathnew.'/'.$nameold,true);
+							$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $fullpathnew_result)));
+						}else{
+							$result = array("query"=>"BE_MOVE_EXISTED","params"=>array());
+							$this->setInfo(array("msg"=>$result, "status"=>0));
+						}
 					}else{
 						$result = array("query"=>"BE_MOVE_FILENAME_NOT_VALID","params"=>array());
 						$this->setInfo(array("msg"=>$result, "status"=>0));
