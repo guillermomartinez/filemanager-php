@@ -369,7 +369,10 @@ class Filemanager
 						$directories = $finder->notName($value);
 					}
 				}
-				$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
+				//$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
+				$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sort(
+					function ($a, $b) {return $b->getMTime() - $a->getMTime();}
+				);
 				
 				// $directories = $directories->files()->name('*.jpg');
 				$directories = $directories->in($fullpath);
