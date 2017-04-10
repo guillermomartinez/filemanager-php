@@ -95,6 +95,7 @@ class Filemanager
 				"resize" => array("thumbWidth" => 120,"thumbHeight" => 90)
 				),
 			"type_file" => null,
+			"folder_excludes" => array(),
 			);		
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];		
 		if(count($extra)>0) $this->setup($extra);
@@ -362,7 +363,16 @@ class Filemanager
 				$r = array();
 				// if($path != "/") $r[] = $this->folderParent($path);
 				$finder = new Finder();
-				$directories = $finder->notName('_thumbs')->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
+				$directories = $finder->notName('_thumbs');
+				if (count($this->config['folder_excludes'])>0) {
+					foreach ($this->config['folder_excludes'] as $value) {
+						$directories = $finder->notName($value);
+					}
+				}
+				//$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
+				$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sort(
+					function ($a, $b) {return $b->getMTime() - $a->getMTime();}
+				);
 				
 				// $directories = $directories->files()->name('*.jpg');
 				$directories = $directories->in($fullpath);
