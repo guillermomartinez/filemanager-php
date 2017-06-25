@@ -31,6 +31,13 @@ $extra = array(
 	// o http://php-filemanager.rhcloud.com/filemanager/userfiles/imagen.jpg
 	"url" => "http://php-filemanager.rhcloud.com/",
 	"debug" => false,
+	"images" => [
+        	'resize'=>[
+			// width,height,IF TRUE crop in width ELSE auto,IF TRUE crop in height ELSE auto
+            		'medium' => array(340,180,true,true),
+			'large' => array(1024,768,true,true),
+        	]
+    	],
 	);
 if(isset($_POST['typeFile']) && $_POST['typeFile']=='images'){
     $extra['type_file'] = 'images';
