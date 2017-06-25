@@ -39,7 +39,7 @@ $f->run();
 
 Install https://github.com/guillermomartinez/filemanager-ui for user interface.
 
-##Demo
+## Demo
 http://php-filemanager.rhcloud.com/
 
 ![demo2](https://cloud.githubusercontent.com/assets/5642429/8630887/aec46114-2731-11e5-9a7b-907127d77891.jpg)
