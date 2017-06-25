@@ -97,8 +97,9 @@ class Filemanager
                     'small' => array(120,90,true,true),
                     )
 				),
-			"type_file" => null,
-			"folder_excludes" => array(),
+            "type_file" => null,
+            "folder_excludes" => array(),
+			"folder_thumb" => '_thumbs',
 			);
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];
 		if(count($extra)>0) $this->setup($extra);
@@ -312,7 +313,7 @@ class Filemanager
 			}elseif($file->isFile()){
 				$thumb =  $this->createThumb($file,$path);
 				if($thumb){
-					$item['preview'] = $this->config['url'].$this->config['source'].'/_thumbs'.$path.$thumb;
+					$item['preview'] = $this->config['url'].$this->config['source'].'/'.$this->config['folder_thumb'].$path.$thumb;
 				}
 				$item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
 			}
@@ -333,14 +334,14 @@ class Filemanager
 		$search = $this->config["images"]["images_ext"];
 		if(array_search($ext, $search) !== false){
 			$fullpath = $this->getFullPath().$path;
-			$fullpaththumb = $this->getFullPath().'/_thumbs'.$path;
+			$fullpaththumb = $this->getFullPath().'/'.$this->config['folder_thumb'].$path;
 			$filename = $file->getFilename();
             $filename_new_first = '';
             $i=0;
             foreach ($this->config['images']['resize'] as $key => $value) {
                 $i++;
     			$filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file->getExtension();
-    			$fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+    			$fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
     			if( $this->config['debug'] ) $this->_log(__METHOD__." - $fullpaththumb");
     			$filethumb = new Filesystem;
     			if($filethumb->exists($fullpaththumb_name) == false){
@@ -373,7 +374,7 @@ class Filemanager
 				$r = array();
 				// if($path != "/") $r[] = $this->folderParent($path);
 				$finder = new Finder();
-				$directories = $finder->notName('_thumbs');
+				$directories = $finder->notName($this->config['folder_thumb']);
 				if (count($this->config['folder_excludes'])>0) {
 					foreach ($this->config['folder_excludes'] as $value) {
 						$directories = $finder->notName($value);
@@ -565,7 +566,7 @@ class Filemanager
 				if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 				if(is_dir($fullpath.$namefile)){
 					$file->remove($fullpath.$namefile);
-					$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
+					$file->remove($this->getFullPath().'/'.$this->config['folder_thumb'].$path.$namefile);
 					$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
 					$this->setInfo(array("msg"=>$result));
 				}elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
@@ -573,7 +574,7 @@ class Filemanager
 					$filename = $file2->getFilename();
                     foreach ($this->config['images']['resize'] as $key => $value) {
                         $filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
-                        $fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+                        $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
                         $file->remove($fullpaththumb_name);
                     }
 					$file->remove($fullpath.$namefile);
@@ -599,14 +600,14 @@ class Filemanager
 						if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
 						if(is_dir($fullpath.$namefile)){
 							$file->remove($fullpath.$namefile);
-							$file->remove($this->getFullPath().'/_thumbs'.$path.$namefile);
+							$file->remove($this->getFullPath().'/'.$this->config['folder_thumb'].$path.$namefile);
 							$data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
 						}elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
 							$file2 = new \SplFileInfo($fullpath.$namefile);
 							$filename = $file2->getFilename();
                             foreach ($this->config['images']['resize'] as $key => $value) {
                                 $filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
-                                $fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_new;
+                                $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
                                 $file->remove($fullpaththumb_name);
                             }
 							$file->remove($fullpath.$namefile);
@@ -663,7 +664,7 @@ class Filemanager
 								$filename = $file2->getFilename();
                                 foreach ($this->config['images']['resize'] as $key => $value) {
                                     $filename_old = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
-                                    $fullpaththumb_name = $this->getFullPath().'/_thumbs'.$path.$filename_old;
+                                    $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_old;
                                     $file->remove($fullpaththumb_name);
                                 }
 							}
