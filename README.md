@@ -4,6 +4,9 @@ It is the connector to the File Manager, [guillermomartinez/filemanager-ui](http
 ## Required
 - PHP >= 5.4
 
+## Wiki
+[Wiki](https://github.com/guillermomartinez/filemanager-ui/wiki)
+
 ## Installation
 ```
 composer require guillermomartinez/filemanager-php:0.1.*
