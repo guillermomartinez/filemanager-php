@@ -95,12 +95,13 @@ class Filemanager
 				"resize" => array(
                     // width,height,IF TRUE crop in width ELSE auto,IF TRUE crop in height ELSE auto
                     'small' => array(120,90,true,true),
-                    )
-				),
+                    ),
+                "quality" => 100,
+                ),
             "type_file" => null,
             "folder_excludes" => array(),
-			"folder_thumb" => '_thumbs',
-			);
+            "folder_thumb" => '_thumbs',
+            );
 		if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];
 		if(count($extra)>0) $this->setup($extra);
 		if($this->config['type_file']=='images'){
@@ -340,24 +341,103 @@ class Filemanager
             $i=0;
             foreach ($this->config['images']['resize'] as $key => $value) {
                 $i++;
-    			$filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file->getExtension();
-    			$fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
-    			if( $this->config['debug'] ) $this->_log(__METHOD__." - $fullpaththumb");
-    			$filethumb = new Filesystem;
-    			if($filethumb->exists($fullpaththumb_name) == false){
-    				if( $this->config['debug'] ) $this->_log(__METHOD__." - ".$fullpaththumb_name);
-    				if($filethumb->exists($fullpaththumb) == false){
-    					$filethumb->mkdir($fullpaththumb);
-    				}
-    				Imagen::open($fullpath.$file->getFilename())->zoomCrop($value[0],$value[1])->save($fullpaththumb_name);
-    			}
-                if($i==1) $filename_new_first = $filename_new;
+                $image_info = $this->imageSizeName($path,$filename,$value);
+                $this->resizeImage($fullpath.$filename,$fullpaththumb.$image_info['name'],$image_info,$value);
+                if($i==1) $filename_new_first = $image_info['name'];
             }
-    		return $filename_new_first;
-		}else{
-			if( $this->config['debug'] ) $this->_log(__METHOD__." - $ext");
-		}
-	}
+            return $filename_new_first;
+        }else{
+            if( $this->config['debug'] ) $this->_log(__METHOD__." - $ext");
+        }
+    }
+
+    /**
+     * redimensiona una imagen
+     * @param  string $path_imagen     ruta de imagen origen
+     * @param  string $path_imagen_new ruta de imagen nueva
+     * @param  array  $image_info      info de imagen
+     * @param  array  $image_config    dimensiones de imagenes
+     * @return boolean
+     */
+     public function resizeImage($path_imagen,$path_imagen_new,$image_info=array(),$image_config=array())
+     {
+        $imagen_ext = $this->getExtension($path_imagen);
+        if ($image_config[2]===true && $image_config[3]===true) {
+            Imagen::open($path_imagen)->zoomCrop($image_info['width'],$image_info['height'])->save($path_imagen_new,$imagen_ext,$this->config['images']['quality']);
+            return true;
+        }elseif ( $image_config[2]===true && $image_config[3]===null ) {
+            Imagen::open($path_imagen)->scaleResize($image_info['width'],null)->save($path_imagen_new,$imagen_ext,$this->config['images']['quality']);
+            return true;
+        }elseif ( $image_config[2]===null && $image_config[3]===true ) {
+            Imagen::open($path_imagen)->scaleResize(null,$image_info['height'])->save($path_imagen_new,$imagen_ext,$this->config['images']['quality']);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * Devuelva el nuevo nombre y dimesion de imagen
+     * @param  string $path         ruta relativa
+     * @param  string $imagen       nombre de imagen
+     * @param  array $image_config dimensiones de imagenes
+     * @return array
+     */
+    public function imageSizeName($path,$imagen,$image_config)
+    {
+        $result = array("name"=>'',"width"=>0,"height"=>0);
+        $imagen_ext = $this->getExtension($imagen);
+        $imagen_name = $this->removeExtension($imagen);
+        if ($image_config[2]===true && $image_config[3]===true) {
+            $fullpath_new = $imagen_name.'-'.$image_config[0].'x'.$image_config[1].'.'.$imagen_ext;
+            $result['name'] = $fullpath_new;
+            $result['width'] = $image_config[0];
+            $result['height'] = $image_config[1];
+        }elseif ( $image_config[2]===true && $image_config[3]===null ) {
+            $imagesize = getimagesize($this->getFullPath().$path.$imagen);
+            $imagesize_new = $this->getImageCalSize(array($imagesize[0],$imagesize[1]),$image_config);
+            $fullpath_new = $imagen_name.'-'.$imagesize_new[0].'x'.$imagesize_new[1].'.'.$imagen_ext;
+            $result['name'] = $fullpath_new;
+            $result['width'] = $imagesize_new[0];
+            $result['height'] = $imagesize_new[1];
+        }elseif ( $image_config[2]===null && $image_config[3]===true ) {
+            $imagesize = getimagesize($this->getFullPath().$path.$imagen);
+            $imagesize_new = $this->getImageCalSize(array($imagesize[0],$imagesize[1]),$image_config);
+            $fullpath_new = $imagen_name.'-'.$imagesize_new[0].'x'.$imagesize_new[1].'.'.$imagen_ext;
+            $result['name'] = $fullpath_new;
+            $result['width'] = $imagesize_new[0];
+            $result['height'] = $imagesize_new[1];
+        }
+        return $result;
+    }
+
+    /**
+     * Calcula las dimensiones de la imagen
+     * @param  array  $imagesize    dimension de la imagen
+     * @param  array  $image_config dimensiones de la imagen
+     * @return array               dimension de la nueva imagen
+     */
+    public function getImageCalSize($imagesize=array(),$image_config=array())
+    {
+        $r = array();
+        if(count($imagesize)>0 && isset($imagesize[0],$imagesize[1]) && count($image_config)>0){
+            if ($image_config[2]===true && $image_config[3]===null) {
+                $por =  $image_config[0] / $imagesize[0];
+                $height = round($imagesize[1] * $por);
+                $r[0] = $image_config[0];
+                $r[1] = $height;
+            }elseif ($image_config[2]===null && $image_config[3]===true) {
+                $por =  $image_config[1] / $imagesize[1];
+                $width = round($imagesize[0] * $por);
+                $r[0] = $width;
+                $r[1] = $image_config[1];
+            }else{
+                $r[0] = $image_config[0];
+                $r[1] = $image_config[1];
+            }
+        }
+        return $r;
+    }
 
 	/**
 	* Lista carpeta y archivos segun el path ingresado, no recursivo, ordenado por tipo y nombre
@@ -383,7 +463,7 @@ class Filemanager
 				//$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
 				$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sort(
 					function ($a, $b) {return $b->getMTime() - $a->getMTime();}
-				);
+                    );
 
 				// $directories = $directories->files()->name('*.jpg');
 				$directories = $directories->in($fullpath);
@@ -552,7 +632,7 @@ class Filemanager
 
 	/**
 	 * Borra un archivo
-	 * @param string or array $namefile
+	 * @param string or array $namefiles
 	 * @param string $path
 	 * @return void
 	 */
@@ -573,59 +653,62 @@ class Filemanager
 					$file2 = new \SplFileInfo($fullpath.$namefile);
 					$filename = $file2->getFilename();
                     foreach ($this->config['images']['resize'] as $key => $value) {
-                        $filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
+                        $image_info = $this->imageSizeName($path,$filename,$value);
+                        $filename_new = $image_info['name'];
+                        // $filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
                         $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
                         $file->remove($fullpaththumb_name);
                     }
-					$file->remove($fullpath.$namefile);
-					$result = array("query"=>"BE_DELETE_DELETED","params"=>array());
-					$this->setInfo(array("msg"=>$result));
-				}else{
-					if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
-					$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-					$this->setInfo(array("msg"=>$result, "status"=> 0));
-				}
-			}else{
-				if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
-				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=> 0));
-			}
-		}elseif(is_array($namefiles)){
-			if(count($namefiles)>0){
-				$fullpath = $this->getFullPath().$path;
-				$data = array();
-				foreach ($namefiles as $key => $namefile) {
-					$file = new Filesystem;
-					if($this->validNameFile($namefile,false) && $file->exists($fullpath.$namefile)){
-						if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
-						if(is_dir($fullpath.$namefile)){
-							$file->remove($fullpath.$namefile);
-							$file->remove($this->getFullPath().'/'.$this->config['folder_thumb'].$path.$namefile);
-							$data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
-						}elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
-							$file2 = new \SplFileInfo($fullpath.$namefile);
-							$filename = $file2->getFilename();
-                            foreach ($this->config['images']['resize'] as $key => $value) {
-                                $filename_new = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
-                                $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
-                                $file->remove($fullpaththumb_name);
-                            }
-							$file->remove($fullpath.$namefile);
-							$data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
-						}else{
-							$data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-						}
-					}else{
-						$data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-					}
-				}
-				$this->setInfo(array("data"=>$data));
-			}else{
-				$result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=> 0));
-			}
-		}
-	}
+                    $file->remove($fullpath.$namefile);
+                    $result = array("query"=>"BE_DELETE_DELETED","params"=>array());
+                    $this->setInfo(array("msg"=>$result));
+                }else{
+                   if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+                   $result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+                   $this->setInfo(array("msg"=>$result, "status"=> 0));
+               }
+           }else{
+            if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+            $result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+            $this->setInfo(array("msg"=>$result, "status"=> 0));
+        }
+    }elseif(is_array($namefiles)){
+     if(count($namefiles)>0){
+        $fullpath = $this->getFullPath().$path;
+        $data = array();
+        foreach ($namefiles as $key => $namefile) {
+           $file = new Filesystem;
+           if($this->validNameFile($namefile,false) && $file->exists($fullpath.$namefile)){
+              if( $this->config['debug'] ) $this->_log('$fullpath.$namefile - '.$fullpath.$namefile);
+              if(is_dir($fullpath.$namefile)){
+                 $file->remove($fullpath.$namefile);
+                 $file->remove($this->getFullPath().'/'.$this->config['folder_thumb'].$path.$namefile);
+                 $data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+             }elseif($this->validNameFile($namefile) && is_file($fullpath.$namefile)){
+                 $file2 = new \SplFileInfo($fullpath.$namefile);
+                 $filename = $file2->getFilename();
+                 foreach ($this->config['images']['resize'] as $key => $value) {
+                    $image_info = $this->imageSizeName($path,$filename,$value);
+                    $filename_new = $image_info['name'];
+                    $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_new;
+                    $file->remove($fullpaththumb_name);
+                }
+                $file->remove($fullpath.$namefile);
+                $data[] = array("status"=>1,"namefile"=>$namefile,"query"=>"BE_DELETE_DELETED","params"=>array());
+            }else{
+             $data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+         }
+     }else{
+      $data[] = array("status"=>0,"namefile"=>$namefile,"query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+  }
+}
+$this->setInfo(array("data"=>$data));
+}else{
+    $result = array("query"=>"BE_DELETE_NOT_EXIED","params"=>array());
+    $this->setInfo(array("msg"=>$result, "status"=> 0));
+}
+}
+}
 
 	/**
 	 * Renombra un archivo
@@ -661,36 +744,37 @@ class Filemanager
 						if($file->exists($fullpath.$namenew)==false){
 							$file2 = new \SplFileInfo($fullpath.$nameold);
                             if(in_array($file2->getExtension(), $this->config['images']['images_ext'])){
-								$filename = $file2->getFilename();
+                                $filename = $file2->getFilename();
                                 foreach ($this->config['images']['resize'] as $key => $value) {
-                                    $filename_old = $this->removeExtension($filename).'-'.$value[0].'x'.$value[1].'.'.$file2->getExtension();
+                                    $image_info = $this->imageSizeName($path,$filename,$value);
+                                    $filename_old = $image_info['name'];
                                     $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_old;
                                     $file->remove($fullpaththumb_name);
                                 }
-							}
-							$file->rename($fullpath.$nameold,$fullpath.$namenew);
-							$file3 = new \SplFileInfo($fullpath.$namenew);
-							$this->createThumb($file3,$path);
-							$result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
-							$this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
-						}else{
-							$result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
-							$this->setInfo(array("msg"=>$result,"status"=>0));
-						}
-					}else{
-						$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
-						$this->setInfo(array("msg"=>$result, "status"=>0));
-					}
-				}
-			}else{
-				$result = array("query"=>"BE_RENAME_NOT_EXISTS","params"=>array());
-				$this->setInfo(array("msg"=>$result, "status"=>0));
-			}
-		}else{
-			$result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
-			$this->setInfo(array("msg"=>$result, "status"=>0));
-		}
-	}
+                            }
+                            $file->rename($fullpath.$nameold,$fullpath.$namenew);
+                            $file3 = new \SplFileInfo($fullpath.$namenew);
+                            $this->createThumb($file3,$path);
+                            $result = array("query"=>"BE_RENAME_MODIFIED","params"=>array());
+                            $this->setInfo(array("msg"=>$result,"data"=>array("namefile" => $namenew )));
+                        }else{
+                            $result = array("query"=>"BE_RENAME_EXISTED","params"=>array());
+                            $this->setInfo(array("msg"=>$result,"status"=>0));
+                        }
+                    }else{
+                        $result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
+                        $this->setInfo(array("msg"=>$result, "status"=>0));
+                    }
+                }
+      }else{
+        $result = array("query"=>"BE_RENAME_NOT_EXISTS","params"=>array());
+        $this->setInfo(array("msg"=>$result, "status"=>0));
+    }
+}else{
+ $result = array("query"=>"BE_RENAME_FILENAME_NOT_VALID","params"=>array());
+ $this->setInfo(array("msg"=>$result, "status"=>0));
+}
+}
 	/**
 	 * Mueve un archivo o directorio
 	 * @param  string $nameold nombre del archivo
@@ -746,6 +830,16 @@ class Filemanager
 							if($file->exists($fullpathnew)==false){
 								$file->mkdir($fullpathnew);
 							}
+                            $file2 = new \SplFileInfo($fullpath.'/'.$nameold);
+                            if(in_array($file2->getExtension(), $this->config['images']['images_ext'])){
+                                $filename = $file2->getFilename();
+                                foreach ($this->config['images']['resize'] as $key => $value) {
+                                    $image_info = $this->imageSizeName($path,$filename,$value);
+                                    $filename_old = $image_info['name'];
+                                    $fullpaththumb_name = $this->getFullPath().'/'.$this->config['folder_thumb'].$path.$filename_old;
+                                    $file->remove($fullpaththumb_name);
+                                }
+                            }
 							$file->rename($fullpath.'/'.$nameold,$fullpathnew.'/'.$nameold);
 							$result = array("query"=>"BE_MOVE_MOVED","params"=>array());
 							$fullpathnew_result = $this->sanitizeNameFolder($pathnew.'/'.$nameold,true);
