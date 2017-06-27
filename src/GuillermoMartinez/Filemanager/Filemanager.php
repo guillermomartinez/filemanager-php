@@ -93,7 +93,7 @@ class Filemanager
             "images" => array(
                 "images_ext" => array("jpg","jpeg","gif","png"),
                 "resize" => array(
-                    // width,height,IF TRUE crop in width ELSE auto,IF TRUE crop in height ELSE auto
+                    // width,height,IF TRUE crop in width ELSEIF NULL is auto,IF TRUE crop in height ELSEIF NULL is auto
                     'small' => array(120,90,true,true),
                     ),
                 "quality" => 100,

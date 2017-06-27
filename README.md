@@ -33,7 +33,7 @@ $extra = array(
 	"debug" => false,
 	"images" => [
         	'resize'=>[
-			// width,height,IF TRUE crop in width ELSE auto,IF TRUE crop in height ELSE auto
+			// width,height,IF TRUE crop in width ELSEIF NULL is auto,IF TRUE crop in height ELSEIF NULL is auto
             		'medium' => array(340,180,true,true),
 			'large' => array(1024,768,true,true),
         	]
