@@ -338,7 +338,9 @@ class Filemanager
             foreach ($this->config['images']['resize'] as $key => $value) {
                 $i++;
                 $image_info = $this->imageSizeName($path,$filename,$value);
-                $this->resizeImage($fullpath.$filename,$fullpaththumb.$image_info['name'],$image_info,$value);
+                if(file_exists($fullpaththumb.$image_info['name']) === false){
+                    $this->resizeImage($fullpath.$filename,$fullpaththumb.$image_info['name'],$image_info,$value);
+                }
                 if($i==1) $filename_new_first = $image_info['name'];
             }
             return $filename_new_first;
