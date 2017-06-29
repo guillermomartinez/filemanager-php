@@ -57,6 +57,12 @@ class Filemanager
         );
 
     /**
+     * Microtime for Log
+     * @var float
+     */
+    private $init;
+    
+    /**
      * details of file
      *
      * @var array
@@ -110,9 +116,41 @@ class Filemanager
         if($this->config['debug']){
             $this->log = new Logger('filemanager');
             $this->log->pushHandler(new StreamHandler($this->config['debugfile']));
+            $this->init = microtime();
+            $this->_log(__METHOD__." - BEGIN FILEMANAGER");
         }
     }
 
+    /**
+     * Devuelve la diferencia de tiempo formateada
+     * @return string
+     */
+    private function getLogTime()
+    {        
+        $diff = $this->microtime_diff($this->init);
+        $format = gmdate("H:i:s",(int)$diff);
+        $diff = sprintf("%01.5f", $diff);
+        $format .= substr($diff,strpos((string)$diff,'.'));
+        return $format;
+    }
+
+    /**
+     * Diferencia de microtime
+     * @param  string $start inicio
+     * @param  microtime $end   fin
+     * @return float        
+     */
+    private function microtime_diff($start, $end = null)
+    {
+        if (!$end) {
+            $end = microtime();
+        }
+        list($start_usec, $start_sec) = explode(" ", $start);
+        list($end_usec, $end_sec) = explode(" ", $end);
+        $diff_sec = intval($end_sec) - intval($start_sec);
+        $diff_usec = floatval($end_usec) - floatval($start_usec);
+        return floatval($diff_sec) + $diff_usec;
+    }
     /**
      * Cambia las configuraciones
      *
@@ -199,6 +237,9 @@ class Filemanager
      * @return void
      */
     public function _log($string,$type='info') {
+        if($this->config['debug']){
+            $string = $this->getLogTime().": ".$string;
+        }
         if($type=='info')
             $this->log->addInfo($string);
         elseif($type=='warning')
@@ -301,23 +342,75 @@ class Filemanager
             $item["filetype"] = $file->getExtension();
             $item["lastmodified"] = $file->getMTime();
             $item["size"] = $file->getSize();
-
-            if($file->isDir()){
-                $item["filetype"] = '';
-                $item["isdir"] = true;
-                $item["urlfolder"] = $path.$item["filename"].'/';
-                $item['preview'] = '';
-            }elseif($file->isFile()){
-                $thumb =  $this->createThumb($file,$path);
+            if ($this->isImage($file)) {
+                $thumb =  $this->firstThumb($file,$path);
                 if($thumb){
                     $item['preview'] = $this->config['url'].$this->config['source'].'/'.$this->config['folder_thumb'].$path.$thumb;
                 }
-                $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
             }
+            $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];            
             return $item;
         }else{
             return ;
         }
+    }
+
+    /**
+     * Informacion del directorio
+     * @param  UploadedFile $file
+     * @param  string $path ruta relativa
+     * @return array       
+     */
+    public function dirInfo($file,$path){
+        if($file->isReadable()){
+            $item = $this->fileDetails;
+            $item["filename"] = $file->getFilename();
+            $item["filetype"] = $file->getExtension();
+            $item["lastmodified"] = $file->getMTime();
+            $item["size"] = $file->getSize();
+            $item["filetype"] = '';
+            $item["isdir"] = true;
+            $item["urlfolder"] = $path.$item["filename"].'/';
+            $item['preview'] = '';            
+            return $item;
+        }else{
+            return ;
+        }
+    }
+
+    /**
+     * Informacion de la primera miniatura
+     * @param  UploadedFile $file 
+     * @param  string $path ruta relativa
+     * @return string       
+     */
+    public function firstThumb($file,$path){
+        $fullpath = $this->getFullPath().$path;
+        $fullpaththumb = $this->getFullPath().'/'.$this->config['folder_thumb'].$path;
+        $filename = $file->getFilename();
+        $filename_new_first = '';
+        foreach ($this->config['images']['resize'] as $key => $value) {
+            $image_info = $this->imageSizeName($path,$filename,$value);
+            if(file_exists($fullpaththumb.$image_info['name']) === false){
+                $this->resizeImage($fullpath.$filename,$fullpaththumb.$image_info['name'],$image_info,$value);
+            }
+            $filename_new_first = $image_info['name'];
+            break;
+        }
+        return $filename_new_first;
+    }
+
+    /**
+     * Validate image
+     * @param  UploadedFile  $file
+     * @return boolean       
+     */
+    public function isImage($file){
+        $ext = $file->getExtension();
+        if(in_array(strtolower($ext), $this->config["images"]["images_ext"] ) )
+            return true;
+        else 
+            return false;
     }
 
     /**
@@ -466,7 +559,7 @@ class Filemanager
                 foreach ($directories as $key => $directorie) {
                     $namefile = $directorie->getFilename();
                     if($directorie->isDir() && $this->validNameFile($namefile,false)){
-                        $t = $this->fileInfo($directorie,$path);
+                        $t = $this->dirInfo($directorie,$path);
                         if($t) $r[] = $t;
                     }elseif($directorie->isFile() && $this->validNameFile($namefile)){
                         $t = $this->fileInfo($directorie,$path);
@@ -936,6 +1029,7 @@ class Filemanager
             }
         }
         $jsonResponse->setData($this->info);
+        if( $this->config['debug'] ) $this->_log(__METHOD__." - END FILEMANAGER");
         return $jsonResponse->sendContent();
     }
 }
