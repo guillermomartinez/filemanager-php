@@ -61,7 +61,7 @@ class Filemanager
      * @var float
      */
     private $init;
-    
+
     /**
      * details of file
      *
@@ -126,7 +126,7 @@ class Filemanager
      * @return string
      */
     private function getLogTime()
-    {        
+    {
         $diff = $this->microtime_diff($this->init);
         $format = gmdate("H:i:s",(int)$diff);
         $diff = sprintf("%01.5f", $diff);
@@ -138,7 +138,7 @@ class Filemanager
      * Diferencia de microtime
      * @param  string $start inicio
      * @param  microtime $end   fin
-     * @return float        
+     * @return float
      */
     private function microtime_diff($start, $end = null)
     {
@@ -304,8 +304,8 @@ class Filemanager
      */
     public function getMaxUploadFileSize() {
 
-        $upload_max_filesize =  ini_get('upload_max_filesize');
-        $post_max_size =  ini_get('post_max_size');
+        $upload_max_filesize = (integer) ini_get('upload_max_filesize');
+        $post_max_size = (integer) ini_get('post_max_size');
         $size_max = min($upload_max_filesize, $post_max_size);
 
         return $size_max;
@@ -348,7 +348,7 @@ class Filemanager
                     $item['preview'] = $this->config['url'].$this->config['source'].'/'.$this->config['folder_thumb'].$path.$thumb;
                 }
             }
-            $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];            
+            $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
             return $item;
         }else{
             return ;
@@ -359,7 +359,7 @@ class Filemanager
      * Informacion del directorio
      * @param  UploadedFile $file
      * @param  string $path ruta relativa
-     * @return array       
+     * @return array
      */
     public function dirInfo($file,$path){
         if($file->isReadable()){
@@ -371,7 +371,7 @@ class Filemanager
             $item["filetype"] = '';
             $item["isdir"] = true;
             $item["urlfolder"] = $path.$item["filename"].'/';
-            $item['preview'] = '';            
+            $item['preview'] = '';
             return $item;
         }else{
             return ;
@@ -380,9 +380,9 @@ class Filemanager
 
     /**
      * Informacion de la primera miniatura
-     * @param  UploadedFile $file 
+     * @param  UploadedFile $file
      * @param  string $path ruta relativa
-     * @return string       
+     * @return string
      */
     public function firstThumb($file,$path){
         $fullpath = $this->getFullPath().$path;
@@ -403,13 +403,13 @@ class Filemanager
     /**
      * Validate image
      * @param  UploadedFile  $file
-     * @return boolean       
+     * @return boolean
      */
     public function isImage($file){
         $ext = $file->getExtension();
         if(in_array(strtolower($ext), $this->config["images"]["images_ext"] ) )
             return true;
-        else 
+        else
             return false;
     }
 
