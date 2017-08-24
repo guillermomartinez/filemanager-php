@@ -11,9 +11,9 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "symfony/finder": "~2.5",
-        "symfony/http-foundation": "~2.5",
-        "symfony/filesystem": "~2.5",
+        "symfony/finder": "~2.5|3.*",
+        "symfony/http-foundation": "~2.5|3.*",
+        "symfony/filesystem": "~2.5|3.*",
         "monolog/monolog": "~1.12",
         "gregwar/image": "2.*"
     },
@@ -22,7 +22,7 @@
         "codeception/codeception": "*",
         "guzzlehttp/guzzle": "~5.0"
     },
-    "autoload": {        
+    "autoload": {
         "psr-4": {
             "GuillermoMartinez\\":"src/GuillermoMartinez"
         }
