@@ -685,7 +685,7 @@ class Filemanager
                 $this->setInfo(array("msg"=>$result));
                 return $res;
             }else{
-                $result = array("query"=>"BE_UPLOAD_MAX_UPLOAD %s MB","params"=>array($this->config['upload']['number']));
+                $result = array("query"=>"BE_UPLOAD_MAX_UPLOAD %s","params"=>array($this->config['upload']['number']));
                 $this->setInfo(array("msg"=>$result,"status"=>0));
             }
         }else{
