@@ -38,6 +38,9 @@ $extra = array(
 			'large' => array(1024,768,true,true),
         	]
     	],
+    // to show thumbs directory you need to set a valid directory and set show_folder_thumb on true
+    "folder_thumb" => 'thumbs',
+    "show_folder_thumb" => true
 	);
 if(isset($_POST['typeFile']) && $_POST['typeFile']=='images'){
     $extra['type_file'] = 'images';
