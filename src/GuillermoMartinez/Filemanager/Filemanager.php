@@ -240,12 +240,8 @@ class Filemanager
         if($this->config['debug']){
             $string = $this->getLogTime().": ".$string;
         }
-        if($type=='info')
-            $this->log->addInfo($string);
-        elseif($type=='warning')
-            $this->log->addWarning($string);
-        elseif($type=='error')
-            $this->log->addError($string);
+        $level = Logger::toMonologLevel($type);
+        $this->log->addRecord($level, $string);
     }
 
     /**
