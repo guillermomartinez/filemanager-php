@@ -240,12 +240,7 @@ class Filemanager
         if($this->config['debug']){
             $string = $this->getLogTime().": ".$string;
         }
-        if($type=='info')
-            $this->log->addInfo($string);
-        elseif($type=='warning')
-            $this->log->addWarning($string);
-        elseif($type=='error')
-            $this->log->addError($string);
+        $this->log->log($type, $string);
     }
 
     /**
@@ -599,19 +594,19 @@ class Filemanager
      */
     public function upload($file,$path){
         if( $this->validExt($file->getClientOriginalName())){
-            if($file->getClientSize() > ($this->getMaxUploadFileSize() * 1024 * 1024) ){
+            if($file->getSize() > ($this->getMaxUploadFileSize() * 1024 * 1024) ){
 
-                $result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_SERVER","params"=>array($file->getClientSize()));
+                $result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_SERVER","params"=>array($file->getSize()));
                 $this->setInfo(array("msg"=>$result));
 
-                if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido server: ".$file->getClientSize());
+                if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido server: ".$file->getSize());
                 return ;
-            }elseif($file->getClientSize() > ($this->config['upload']['size_max'] * 1024 * 1024) ){
+            }elseif($file->getSize() > ($this->config['upload']['size_max'] * 1024 * 1024) ){
 
-                $result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_PERMITIDO","params"=>array($file->getClientSize()));
+                $result = array("query"=>"BE_UPLOAD_FILE_SIZE_NOT_PERMITIDO","params"=>array($file->getSize()));
                 $this->setInfo(array("msg"=>$result));
 
-                if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido: ".$file->getClientSize());
+                if( $this->config['debug'] ) $this->_log(__METHOD__." - file size no permitido: ".$file->getSize());
                 return ;
             }else{
                 if($file->isValid()){
