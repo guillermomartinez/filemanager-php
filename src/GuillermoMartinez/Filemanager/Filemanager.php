@@ -107,6 +107,7 @@ class Filemanager
             "type_file" => null,
             "folder_excludes" => array(),
             "folder_thumb" => '_thumbs',
+            "show_folder_thumb" => false
             );
         if(isset($_SERVER['DOCUMENT_ROOT'])) $this->config['doc_root'] = $_SERVER['DOCUMENT_ROOT'];
         if(count($extra)>0) $this->setup($extra);
@@ -342,13 +343,18 @@ class Filemanager
             $item["filetype"] = $file->getExtension();
             $item["lastmodified"] = $file->getMTime();
             $item["size"] = $file->getSize();
+            $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
             if ($this->isImage($file)) {
-                $thumb =  $this->firstThumb($file,$path);
-                if($thumb){
-                    $item['preview'] = $this->config['url'].$this->config['source'].'/'.$this->config['folder_thumb'].$path.$thumb;
+                $thumbPath = "/".$this->config['folder_thumb']."/";
+                if (substr($path, 0, strlen($thumbPath)) == $thumbPath) {
+                    $item['preview'] = $item['previewfull'];
+                } else {
+                    $thumb =  $this->firstThumb($file,$path);
+                    if($thumb){
+                        $item['preview'] = $this->config['url'].$this->config['source'].'/'.$this->config['folder_thumb'].$path.$thumb;
+                    }
                 }
             }
-            $item['previewfull'] = $this->config['url'].$this->config['source'].$path.$item["filename"];
             return $item;
         }else{
             return ;
@@ -544,14 +550,16 @@ class Filemanager
                 $r = array();
                 // if($path != "/") $r[] = $this->folderParent($path);
                 $finder = new Finder();
-                $directories = $finder->notName($this->config['folder_thumb']);
+                if (!$this->config['show_folder_thumb'] || $this->validPath("/".$this->config['folder_thumb']."/")==false) {
+                    $directories = $finder->notName($this->config['folder_thumb']);
+                }
                 if (count($this->config['folder_excludes'])>0) {
                     foreach ($this->config['folder_excludes'] as $value) {
                         $directories = $finder->notName($value);
                     }
                 }
                 //$directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sortByType();
-                $directories = $directories->notName('web.config')->notName('.htaccess')->depth(0)->sort(
+                $directories = $finder->notName('web.config')->notName('.htaccess')->depth(0)->sort(
                     function ($a, $b) {return $b->getMTime() - $a->getMTime();}
                     );
                 // $directories = $directories->files()->name('*.jpg');
