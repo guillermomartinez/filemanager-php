@@ -1003,7 +1003,7 @@ class Filemanager
                     $namenew = $this->sanitize($request->request->get('name'));
                     $this->move($nameold,$namenew,$path);
                 }elseif($this->action==='deletefile'){
-                    $name = $request->request->get('name');
+                    $name = $request->request->all('name');
                     $this->delete($name,$path);
                 }else{
                     $this->setInfo(array("status"=>0));
